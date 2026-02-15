@@ -1324,7 +1324,7 @@ export default function HomePage() {
               Cozy
             </h1>
           </div>
-          <div className="hidden sm:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2">
             <button
               onClick={() => router.push('/cameras')}
               className="flex h-9 items-center gap-2 rounded-[var(--radius-md)] px-3 transition-colors hover:bg-white/60"
@@ -1358,13 +1358,13 @@ export default function HomePage() {
               <span className="text-xs font-medium">Настройки</span>
             </button>
           </div>
-          <div className="flex sm:hidden items-center gap-1">
+          <div className="flex md:hidden items-center gap-1">
             <PreferencesButton />
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-24 sm:px-6 sm:py-8 sm:pb-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-24 sm:px-6 md:py-8 md:pb-8">
         {/* Scenarios */}
         <section>
           <div className="mb-4 flex items-center justify-between">
@@ -1411,7 +1411,7 @@ export default function HomePage() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+            <div className="grid grid-cols-2 gap-2.5 md:flex md:flex-wrap md:gap-3">
               {sorted.map((scenario) => (
                 <ScenarioCard
                   key={scenario.id}
@@ -1448,7 +1448,7 @@ export default function HomePage() {
                   style={{ color: 'var(--primary)' }}
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">Добавить устройство</span>
+                  <span className="hidden md:inline">Добавить устройство</span>
                 </button>
                 <button
                   onClick={() => setEditMode(!editMode)}
@@ -1463,7 +1463,7 @@ export default function HomePage() {
                 </button>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+            <div className="grid grid-cols-2 gap-2.5 md:flex md:flex-wrap md:gap-3">
               {displayedWidgets.map((widget) => {
                 if (widget.type === 'door') {
                   return (
@@ -1917,7 +1917,7 @@ export default function HomePage() {
 
       {/* Mobile Bottom Navigation */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-40 sm:hidden glass-heavy pb-safe"
+        className="fixed bottom-0 left-0 right-0 z-40 md:hidden glass-heavy pb-safe"
         style={{ borderRadius: 0, borderBottom: "none", borderLeft: "none", borderRight: "none" }}
       >
         <div className="flex items-center justify-around h-16 px-1">

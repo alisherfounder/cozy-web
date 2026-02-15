@@ -291,17 +291,17 @@ input[type="range"]::-moz-range-thumb:active {
 
 /* ─── Mobile responsive overrides ──────────────────── */
 
-@media (max-width: 639px) {
+@media (max-width: 767px) {
   .scenario-card-wrap {
     width: 100% !important;
-    height: auto !important;
-    min-height: 150px;
+    height: 156px !important;
+    transition: none !important;
   }
 
   .device-widget-wrap {
     width: 100% !important;
-    height: auto !important;
-    min-height: 128px;
+    height: 132px !important;
+    transition: none !important;
   }
 
   .device-widget-wrap .glass-card {
