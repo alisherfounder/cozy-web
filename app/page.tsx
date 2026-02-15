@@ -53,6 +53,7 @@ import { api } from "@/lib/api"
 import type { ScenarioResponse, DeviceResponse } from "@/lib/api"
 import { usePreferences, type GridSize, GRID_SIZE_CONFIG } from "@/lib/preferences"
 import { PreferencesButton } from "@/components/preferences-panel"
+import { MobileNav } from "@/components/mobile-nav"
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("ru-RU", {
@@ -909,16 +910,9 @@ function AiChatWidget() {
   }, [])
 
   return (
-    <div
-      className="overflow-hidden"
-      style={{
-        borderRadius: "var(--radius-xl)",
-        background: "var(--primary-wash)",
-      }}
-    >
-      {/* Chat messages */}
+    <div className="glass-card overflow-hidden">
       <div
-        className="flex flex-col gap-3 p-5"
+        className="flex flex-col gap-1.5 p-4"
         style={{
           maxHeight: messages.length > 0 ? "400px" : "auto",
           overflowY: messages.length > 0 ? "auto" : "visible"
@@ -931,7 +925,7 @@ function AiChatWidget() {
                 key={i}
                 onClick={() => { setQuery(s); handleSend(s) }}
                 disabled={sending}
-                className="text-left text-sm transition-opacity hover:opacity-70 disabled:opacity-50"
+                className="cursor-pointer text-left text-sm rounded-[var(--radius-md)] border border-[rgba(174,87,72,0.15)] bg-white/70 px-3 py-2 transition-colors hover:bg-white/90 disabled:opacity-50"
                 style={{ color: "var(--foreground)" }}
               >
                 {s}
@@ -946,7 +940,7 @@ function AiChatWidget() {
                 className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className="rounded-[var(--radius-lg)] p-3.5 text-sm leading-relaxed whitespace-pre-wrap max-w-[85%]"
+                  className="rounded-[var(--radius-md)] px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap max-w-[85%]"
                   style={{
                     background: msg.role === "user"
                       ? "var(--primary)"
@@ -965,20 +959,16 @@ function AiChatWidget() {
         )}
       </div>
 
-      {/* Input area */}
-      <div className="px-5 pb-5">
+      <div className="px-4 pb-4">
         {messages.length > 0 && (
-          <div className="mb-2 flex gap-2 overflow-x-auto pb-2">
+          <div className="mb-1.5 flex gap-1.5 overflow-x-auto pb-1.5">
             {AI_SUGGESTIONS.slice(0, 2).map((s, i) => (
               <button
                 key={i}
                 onClick={() => { setQuery(s); handleSend(s) }}
                 disabled={sending}
-                className="shrink-0 rounded-[var(--radius-md)] px-3 py-1.5 text-xs transition-opacity hover:opacity-70 disabled:opacity-50"
-                style={{
-                  background: "rgba(255,255,255,0.5)",
-                  color: "var(--foreground)"
-                }}
+                className="shrink-0 cursor-pointer rounded-[var(--radius-md)] border border-[rgba(174,87,72,0.15)] bg-white/70 px-2.5 py-1.5 text-xs transition-colors hover:bg-white/90 disabled:opacity-50"
+                style={{ color: "var(--foreground)" }}
               >
                 {s}
               </button>
@@ -986,13 +976,9 @@ function AiChatWidget() {
           </div>
         )}
         <div
-          className="flex items-center overflow-hidden"
-          style={{
-            borderRadius: "var(--radius-xl)",
-            background: "rgba(255,255,255,0.7)",
-          }}
+          className="flex items-center overflow-hidden rounded-[var(--radius-md)] border border-[rgba(174,87,72,0.1)] bg-white/60"
         >
-          <Search className="ml-4 h-4 w-4 shrink-0" style={{ color: "var(--text-muted)" }} />
+          <Search className="ml-3 h-4 w-4 shrink-0" style={{ color: "var(--text-muted)" }} />
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -1004,10 +990,10 @@ function AiChatWidget() {
             }}
             placeholder="Задайте любой вопрос..."
             disabled={sending}
-            className="h-12 flex-1 bg-transparent px-3 text-sm outline-none placeholder:text-[var(--text-muted)] disabled:opacity-50"
+            className="h-10 flex-1 bg-transparent px-2 text-sm outline-none placeholder:text-[var(--text-muted)] disabled:opacity-50"
             style={{ color: "var(--foreground)" }}
           />
-          {sending && <Loader2 className="mr-4 h-4 w-4 animate-spin" style={{ color: "var(--text-muted)" }} />}
+          {sending && <Loader2 className="mr-3 h-4 w-4 animate-spin" style={{ color: "var(--text-muted)" }} />}
         </div>
       </div>
     </div>
@@ -1915,53 +1901,7 @@ export default function HomePage() {
         )}
       </main>
 
-      {/* Mobile Bottom Navigation */}
-      <nav
-        className="fixed bottom-0 left-0 right-0 z-40 md:hidden glass-heavy pb-safe"
-        style={{ borderRadius: 0, borderBottom: "none", borderLeft: "none", borderRight: "none" }}
-      >
-        <div className="flex items-center justify-around h-16 px-1">
-          <button
-            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
-            style={{ color: "var(--primary)" }}
-          >
-            <LayoutGrid className="h-5 w-5" />
-            <span className="text-[10px] font-semibold">Главная</span>
-          </button>
-          <button
-            onClick={() => router.push("/cameras")}
-            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <Video className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Камеры</span>
-          </button>
-          <button
-            onClick={() => router.push("/floor-plan")}
-            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <Map className="h-5 w-5" />
-            <span className="text-[10px] font-medium">План</span>
-          </button>
-          <button
-            onClick={() => router.push("/bills")}
-            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <CreditCard className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Счета</span>
-          </button>
-          <button
-            onClick={() => router.push("/settings")}
-            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
-            style={{ color: "var(--text-muted)" }}
-          >
-            <Settings className="h-5 w-5" />
-            <span className="text-[10px] font-medium">Настройки</span>
-          </button>
-        </div>
-      </nav>
+      <MobileNav />
 
       {/* Add Device Modal */}
       {showAddDevice && (

@@ -164,6 +164,19 @@ body {
   background-attachment: fixed;
 }
 
+/* ─── React Flow mobile overrides ──────────────────── */
+
+@media (max-width: 767px) {
+  .react-flow__minimap {
+    display: none !important;
+  }
+
+  .react-flow__controls {
+    bottom: 12px !important;
+    left: 12px !important;
+  }
+}
+
 /* ─── React Flow overrides ──────────────────────────── */
 
 .react-flow__node-block {

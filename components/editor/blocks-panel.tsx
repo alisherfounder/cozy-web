@@ -12,7 +12,7 @@ import {
 } from "@/lib/blocks"
 import { usePreferences, BLOCK_SIZE_CONFIG } from "@/lib/preferences"
 
-export function BlocksPanel({ onClose }: { onClose: () => void }) {
+export function BlocksPanel({ onClose, onAddBlock }: { onClose: () => void; onAddBlock?: (blockType: string, category: string) => void }) {
   const { blockSize } = usePreferences()
   const cfg = BLOCK_SIZE_CONFIG[blockSize]
   const [search, setSearch] = useState("")
@@ -51,7 +51,7 @@ export function BlocksPanel({ onClose }: { onClose: () => void }) {
   const panelWidth = blockSize === "compact" ? "w-56" : blockSize === "large" ? "w-72" : "w-64"
 
   return (
-    <div className={`glass-heavy flex h-full ${panelWidth} flex-col`} style={{ borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderLeft: 'none' }}>
+    <div className={`glass-heavy flex h-full ${panelWidth} max-md:fixed max-md:inset-0 max-md:z-50 max-md:w-full flex-col`} style={{ borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderLeft: 'none' }}>
       <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
         <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
           Блоки
@@ -113,7 +113,12 @@ export function BlocksPanel({ onClose }: { onClose: () => void }) {
                         key={block.type}
                         draggable
                         onDragStart={(e) => handleDragStart(e, block)}
-                        className={`flex cursor-grab items-start ${cfg.gap} border border-transparent ${cfg.px} transition-all hover:border-[rgba(174,87,72,0.1)] hover:bg-white/50 hover:shadow-sm active:cursor-grabbing`}
+                        onClick={() => {
+                          if (onAddBlock) {
+                            onAddBlock(block.type, block.category)
+                          }
+                        }}
+                        className={`flex cursor-grab items-start ${cfg.gap} border border-transparent ${cfg.px} transition-all hover:border-[rgba(174,87,72,0.1)] hover:bg-white/50 hover:shadow-sm active:cursor-grabbing max-md:cursor-pointer`}
                         style={{
                           borderRadius: 'var(--radius-md)',
                           paddingTop: blockSize === "compact" ? 6 : blockSize === "large" ? 10 : 8,

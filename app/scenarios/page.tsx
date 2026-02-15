@@ -17,6 +17,7 @@ import type { ScenarioResponse, ScenarioCreate } from "@/lib/api"
 import { ConfirmDialog } from "@/components/confirm-dialog"
 import { PreferencesButton } from "@/components/preferences-panel"
 import { usePreferences } from "@/lib/preferences"
+import { MobileNav } from "@/components/mobile-nav"
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -123,7 +124,7 @@ export default function ScenariosPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8">
+      <main className="mx-auto max-w-6xl px-4 py-4 pb-24 sm:px-6 md:py-8 md:pb-8">
         {loading ? (
           <div className="flex h-64 items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'var(--primary-lighter)' }} />
@@ -302,6 +303,8 @@ export default function ScenariosPage() {
         confirmLabel="Delete"
         loading={deletingId !== null}
       />
+
+      <MobileNav />
     </div>
   )
 }

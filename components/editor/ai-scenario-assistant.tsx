@@ -95,7 +95,7 @@ export function AIScenarioAssistant({
   }
 
   return (
-    <div className="glass-heavy flex h-full w-80 flex-col" style={{ borderRadius: 0, borderTop: "none", borderBottom: "none", borderRight: "none" }}>
+    <div className="glass-heavy flex h-full w-80 max-md:fixed max-md:inset-0 max-md:z-50 max-md:w-full flex-col" style={{ borderRadius: 0, borderTop: "none", borderBottom: "none", borderRight: "none" }}>
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
         <div className="flex items-center gap-2">
@@ -241,7 +241,7 @@ export function AIScenarioAssistant({
                 ? "Например: Добавь уведомление в конце, Проверь правильность схемы, Измени время на 9:00..."
                 : "Опишите что должен делать сценарий..."
             }
-            rows={6}
+            rows={4}
             className="glass-input w-full resize-none px-3 py-2.5 text-xs"
             style={{ color: "var(--foreground)" }}
             disabled={generating}

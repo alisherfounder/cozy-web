@@ -7,6 +7,7 @@ import {
   Zap, ArrowLeft, CreditCard, Loader2, Droplet, Zap as Lightning,
   Flame, Plus, FileText, CheckCircle2, Clock, AlertCircle
 } from "lucide-react"
+import { MobileNav } from "@/components/mobile-nav"
 
 export default function BillsPage() {
   const router = useRouter()
@@ -117,7 +118,7 @@ export default function BillsPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ background: "var(--background)" }}>
+    <div className="bg-mesh-gradient flex min-h-screen flex-col">
       {/* Header */}
       <header
         className="sticky top-0 z-40 glass-heavy"
@@ -146,7 +147,7 @@ export default function BillsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-24 sm:px-6 md:py-8 md:pb-8">
         {loading ? (
           <div className="flex h-[60vh] items-center justify-center">
             <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--primary-lighter)" }} />
@@ -362,6 +363,8 @@ export default function BillsPage() {
           </div>
         )}
       </main>
+
+      <MobileNav />
     </div>
   )
 }

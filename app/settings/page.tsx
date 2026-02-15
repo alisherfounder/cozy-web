@@ -8,6 +8,7 @@ import {
   Smartphone, Bell, Globe, Lock, User, Palette, Moon, Sun,
   Trash2, Edit3, Plus
 } from "lucide-react"
+import { MobileNav } from "@/components/mobile-nav"
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -50,7 +51,7 @@ export default function SettingsPage() {
   ]
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ background: "var(--background)" }}>
+    <div className="bg-mesh-gradient flex min-h-screen flex-col">
       {/* Header */}
       <header
         className="sticky top-0 z-40 glass-heavy"
@@ -79,7 +80,7 @@ export default function SettingsPage() {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-24 sm:px-6 md:py-8 md:pb-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-4">
           {/* Sidebar */}
           <div className="lg:col-span-1">
@@ -385,6 +386,8 @@ export default function SettingsPage() {
           </div>
         </div>
       </main>
+
+      <MobileNav />
     </div>
   )
 }

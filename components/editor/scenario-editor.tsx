@@ -121,7 +121,7 @@ function EditorInner({ scenarioId }: { scenarioId: number }) {
   const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[])
   const [saving, setSaving] = useState(false)
   const [executing, setExecuting] = useState(false)
-  const [showPanel, setShowPanel] = useState(true)
+  const [showPanel, setShowPanel] = useState(typeof window !== 'undefined' ? window.innerWidth >= 768 : true)
   const [scenarioName, setScenarioName] = useState("")
   const [scenarioDesc, setScenarioDesc] = useState("")
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
@@ -356,7 +356,7 @@ function EditorInner({ scenarioId }: { scenarioId: number }) {
     <div className="flex h-screen w-screen flex-col" style={{ background: '#ffffff' }}>
       {/* Toolbar */}
       <div className="glass-heavy flex h-12 shrink-0 items-center justify-between px-3" style={{ borderRadius: 0, borderLeft: 'none', borderRight: 'none', borderTop: 'none' }}>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <button
             onClick={() => router.back()}
             className="rounded-[var(--radius-sm)] p-1.5 transition-colors hover:bg-white/40"
@@ -365,7 +365,7 @@ function EditorInner({ scenarioId }: { scenarioId: number }) {
             <ArrowLeft className="h-4 w-4" />
           </button>
 
-          <div className="mx-1 h-4 w-px" style={{ background: 'var(--border)' }} />
+          <div className="mx-0.5 md:mx-1 h-4 w-px" style={{ background: 'var(--border)' }} />
 
           <button
             onClick={() => setShowPanel((p) => !p)}
@@ -379,7 +379,7 @@ function EditorInner({ scenarioId }: { scenarioId: number }) {
             )}
           </button>
 
-          <div className="mx-1 h-4 w-px" style={{ background: 'var(--border)' }} />
+          <div className="mx-0.5 md:mx-1 h-4 w-px" style={{ background: 'var(--border)' }} />
 
           {editingName ? (
             <input
@@ -388,13 +388,13 @@ function EditorInner({ scenarioId }: { scenarioId: number }) {
               onChange={(e) => setScenarioName(e.target.value)}
               onBlur={() => setEditingName(false)}
               onKeyDown={(e) => e.key === "Enter" && setEditingName(false)}
-              className="glass-input h-7 px-2 text-sm font-medium"
+              className="glass-input h-7 w-24 md:w-auto px-2 text-xs md:text-sm font-medium"
               style={{ color: 'var(--foreground)' }}
             />
           ) : (
             <button
               onClick={() => setEditingName(true)}
-              className="rounded-[var(--radius-sm)] px-2 py-1 text-sm font-medium transition-colors hover:bg-white/40"
+              className="max-w-[120px] md:max-w-none truncate rounded-[var(--radius-sm)] px-1.5 md:px-2 py-1 text-xs md:text-sm font-medium transition-colors hover:bg-white/40"
               style={{ color: 'var(--foreground)' }}
             >
               {scenarioName}
@@ -402,54 +402,78 @@ function EditorInner({ scenarioId }: { scenarioId: number }) {
           )}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1 md:gap-1.5">
           <button
             onClick={() => setShowAI(true)}
-            className="flex h-8 items-center gap-1.5 px-3 text-xs font-medium transition-all active:scale-[0.98]"
+            className="flex h-8 items-center gap-1.5 px-2 md:px-3 text-xs font-medium transition-all active:scale-[0.98]"
             style={{
               borderRadius: 'var(--radius-md)',
               background: 'rgba(158, 123, 158, 0.1)',
               border: '1px solid rgba(158, 123, 158, 0.2)',
               color: '#9E7B9E'
             }}
+            title="AI-ассистент"
           >
-            <Sparkles className="h-3 w-3" />
-            AI-ассистент
+            <Sparkles className="h-3.5 w-3.5 md:h-3 md:w-3" />
+            <span className="hidden md:inline">AI-ассистент</span>
           </button>
-          <div className="mx-0.5 h-4 w-px" style={{ background: 'var(--border)' }} />
-          <PreferencesButton />
+          <div className="mx-0.5 h-4 w-px hidden md:block" style={{ background: 'var(--border)' }} />
+          <span className="hidden md:inline"><PreferencesButton /></span>
           <button
             onClick={handleExecute}
             disabled={executing}
-            className="glass-button flex h-8 items-center gap-1.5 px-3 text-xs font-medium disabled:opacity-50"
+            className="glass-button flex h-8 items-center gap-1.5 px-2 md:px-3 text-xs font-medium disabled:opacity-50"
             style={{ color: 'var(--text-secondary)' }}
+            title="Выполнить"
           >
             {executing ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 md:h-3 md:w-3 animate-spin" />
             ) : (
-              <Play className="h-3 w-3" />
+              <Play className="h-3.5 w-3.5 md:h-3 md:w-3" />
             )}
-            Execute
+            <span className="hidden md:inline">Execute</span>
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="flex h-8 items-center gap-1.5 px-3 text-xs font-medium text-white transition-all disabled:opacity-50 active:scale-[0.98]"
+            className="flex h-8 items-center gap-1.5 px-2.5 md:px-3 text-xs font-medium text-white transition-all disabled:opacity-50 active:scale-[0.98]"
             style={{ borderRadius: 'var(--radius-md)', background: 'var(--primary)', boxShadow: '0 4px 14px rgba(174, 87, 72, 0.25)' }}
+            title="Сохранить"
           >
             {saving ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 md:h-3 md:w-3 animate-spin" />
             ) : (
-              <Save className="h-3 w-3" />
+              <Save className="h-3.5 w-3.5 md:h-3 md:w-3" />
             )}
-            Save
+            <span className="hidden md:inline">Save</span>
           </button>
         </div>
       </div>
 
       {/* Canvas area */}
       <div className="flex flex-1 overflow-hidden">
-        {showPanel && <BlocksPanel onClose={() => setShowPanel(false)} />}
+        {showPanel && (
+          <BlocksPanel
+            onClose={() => setShowPanel(false)}
+            onAddBlock={(blockType, category) => {
+              const newNode: Node = {
+                id: `block_${Date.now()}`,
+                type: "block",
+                position: {
+                  x: 100 + Math.random() * 200,
+                  y: 100 + nodes.length * 80,
+                },
+                data: {
+                  block_type: blockType,
+                  category,
+                  config: getDefaultConfig(blockType),
+                },
+              }
+              setNodes((nds) => [...nds, newNode])
+              if (window.innerWidth < 768) setShowPanel(false)
+            }}
+          />
+        )}
 
         <div className="relative flex-1">
           <ReactFlow
@@ -487,10 +511,17 @@ function EditorInner({ scenarioId }: { scenarioId: number }) {
 
             {nodes.length === 0 && (
               <Panel position="top-center">
-                <div className="mt-32 text-center">
-                  <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                    Drag blocks from the panel to get started
+                <div className="mt-20 md:mt-32 text-center px-4">
+                  <p className="text-xs md:text-sm" style={{ color: 'var(--text-muted)' }}>
+                    Перетащите блоки из панели на канвас
                   </p>
+                  <button
+                    onClick={() => setShowPanel(true)}
+                    className="mt-3 md:hidden rounded-[var(--radius-md)] px-4 py-2 text-xs font-medium text-white"
+                    style={{ background: 'var(--primary)' }}
+                  >
+                    Открыть блоки
+                  </button>
                 </div>
               </Panel>
             )}
@@ -755,7 +786,7 @@ function ConfigPanel({
   )
 
   return (
-    <div className="glass-heavy flex h-full w-72 flex-col" style={{ borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderRight: 'none' }}>
+    <div className="glass-heavy flex h-full w-72 max-md:fixed max-md:inset-0 max-md:z-50 max-md:w-full flex-col" style={{ borderRadius: 0, borderTop: 'none', borderBottom: 'none', borderRight: 'none' }}>
       <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
         <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
           Configure
