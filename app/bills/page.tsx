@@ -166,7 +166,7 @@ export default function BillsPage() {
                 <div className="glass-card" style={{ padding: 16 }}>
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>К оплате</p>
                   <p className="mt-1 text-2xl font-bold" style={{ color: "#fab005" }}>
-                    {stats.total_pending_amount.toFixed(2)} ₽
+                    {stats.total_pending_amount.toFixed(2)} ₸
                   </p>
                   <p className="mt-0.5 text-[10px]" style={{ color: "var(--text-muted)" }}>
                     {stats.pending_bills} счетов
@@ -175,7 +175,7 @@ export default function BillsPage() {
                 <div className="glass-card" style={{ padding: 16 }}>
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>Оплачено</p>
                   <p className="mt-1 text-2xl font-bold" style={{ color: "#51cf66" }}>
-                    {stats.total_paid_amount.toFixed(2)} ₽
+                    {stats.total_paid_amount.toFixed(2)} ₸
                   </p>
                   <p className="mt-0.5 text-[10px]" style={{ color: "var(--text-muted)" }}>
                     {stats.paid_bills} счетов
@@ -264,7 +264,7 @@ export default function BillsPage() {
                           <div className="flex items-center justify-between gap-3 sm:justify-end">
                             <div className="sm:text-right">
                               <p className="text-xl sm:text-2xl font-bold" style={{ color: "var(--foreground)" }}>
-                                {bill.amount.toFixed(2)} ₽
+                                {bill.amount.toFixed(2)} ₸
                               </p>
                               {bill.paid_at && (
                                 <p className="mt-0.5 text-[10px]" style={{ color: "var(--text-muted)" }}>

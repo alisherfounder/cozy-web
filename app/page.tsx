@@ -723,6 +723,8 @@ function DoorControl({
   onDragOver,
   onDragEnd,
   isDragging,
+  status: statusFromParent,
+  onStatusChange,
 }: {
   editMode?: boolean
   onRemove?: () => void
@@ -730,31 +732,36 @@ function DoorControl({
   onDragOver?: () => void
   onDragEnd?: () => void
   isDragging?: boolean
+  status?: "opened" | "closed" | null
+  onStatusChange?: (s: "opened" | "closed") => void
 }) {
-  const [status, setStatus] = useState<"opened" | "closed" | "loading">("closed")
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const status = statusFromParent ?? "closed"
 
   const handleOpen = async () => {
-    setStatus("loading")
+    setLoading(true)
     setError(null)
     try {
       await api.servo.open()
-      setStatus("opened")
+      onStatusChange?.("opened")
     } catch (err) {
       setError("Не удалось открыть")
-      setStatus("closed")
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleClose = async () => {
-    setStatus("loading")
+    setLoading(true)
     setError(null)
     try {
       await api.servo.close()
-      setStatus("closed")
+      onStatusChange?.("closed")
     } catch (err) {
       setError("Не удалось закрыть")
-      setStatus("opened")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -811,12 +818,12 @@ function DoorControl({
                 Дверь
               </div>
               <div className="truncate text-[10px] sm:text-[11px]" style={{ color: "var(--text-muted)" }}>
-                {status === "loading" ? "Выполняется..." : status === "opened" ? "Открыта" : "Закрыта"}
+                {loading ? "Выполняется..." : status === "opened" ? "Открыта" : "Закрыта"}
               </div>
             </div>
           </div>
           <div
-            className={`rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 ${status === "loading" ? "animate-pulse" : ""}`}
+            className={`rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 ${loading ? "animate-pulse" : ""}`}
             style={{ background: status === "opened" ? "#51cf66" : "#94a3b8" }}
           />
         </div>
@@ -828,7 +835,7 @@ function DoorControl({
         <div className="flex gap-2">
           <button
             onClick={handleOpen}
-            disabled={status === "loading" || editMode}
+            disabled={loading || editMode}
             className="flex-1 rounded-[var(--radius-md)] py-2 sm:py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
             style={{
               background: status === "opened" ? "#3b82f6" : "var(--primary-wash)",
@@ -839,7 +846,7 @@ function DoorControl({
           </button>
           <button
             onClick={handleClose}
-            disabled={status === "loading" || editMode}
+            disabled={loading || editMode}
             className="flex-1 rounded-[var(--radius-md)] py-2 sm:py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
             style={{
               background: status === "closed" ? "#64748b" : "var(--primary-wash)",
@@ -1028,6 +1035,7 @@ export default function HomePage() {
   const [newCameraMacIp, setNewCameraMacIp] = useState("")
   const [creatingDevice, setCreatingDevice] = useState(false)
   const [dashboardRefreshing, setDashboardRefreshing] = useState(false)
+  const [doorStatus, setDoorStatus] = useState<"opened" | "closed" | null>(null)
 
   const handleToggleScenario = useCallback(async (scenarioId: number) => {
     const scenario = scenarios.find(s => s.id === scenarioId)
@@ -1116,12 +1124,16 @@ export default function HomePage() {
     await new Promise((r) => requestAnimationFrame(r))
     await new Promise((r) => requestAnimationFrame(r))
     try {
-      const [scenarioData, deviceData] = await Promise.all([
+      const [scenarioData, deviceData, servoStatus] = await Promise.all([
         api.scenarios.list(),
         api.devices.list(),
+        api.servo.status().catch(() => ({})),
       ])
       setScenarios(scenarioData)
       setDevices(deviceData)
+      const raw = (servoStatus as Record<string, unknown>)?.state ?? (servoStatus as Record<string, unknown>)?.status ?? (servoStatus as Record<string, unknown>)?.position
+      const s = typeof raw === "string" ? raw.toLowerCase() : ""
+      setDoorStatus(s.includes("open") ? "opened" : "closed")
     } catch (error) {
       console.error("Failed to refetch dashboard:", error)
     } finally {
@@ -1132,12 +1144,16 @@ export default function HomePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [scenarioData, deviceData] = await Promise.all([
+        const [scenarioData, deviceData, servoStatus] = await Promise.all([
           api.scenarios.list(),
           api.devices.list(),
+          api.servo.status().catch(() => ({})),
         ])
         setScenarios(scenarioData)
         setDevices(deviceData)
+        const raw = (servoStatus as Record<string, unknown>)?.state ?? (servoStatus as Record<string, unknown>)?.status ?? (servoStatus as Record<string, unknown>)?.position
+        const s = typeof raw === "string" ? raw.toLowerCase() : ""
+        setDoorStatus(s.includes("open") ? "opened" : "closed")
       } catch (error) {
         console.error("Failed to load data:", error)
       } finally {
@@ -1485,6 +1501,8 @@ export default function HomePage() {
                       onDragOver={() => handleWidgetDragOver(widget.key)}
                       onDragEnd={handleWidgetDragEnd}
                       isDragging={draggedWidgetKey === widget.key}
+                      status={doorStatus}
+                      onStatusChange={setDoorStatus}
                     />
                   )
                 }
