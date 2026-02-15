@@ -723,8 +723,6 @@ function DoorControl({
   onDragOver,
   onDragEnd,
   isDragging,
-  status: statusFromParent,
-  onStatusChange,
 }: {
   editMode?: boolean
   onRemove?: () => void
@@ -732,19 +730,17 @@ function DoorControl({
   onDragOver?: () => void
   onDragEnd?: () => void
   isDragging?: boolean
-  status?: "opened" | "closed" | null
-  onStatusChange?: (s: "opened" | "closed") => void
 }) {
+  const [status, setStatus] = useState<"opened" | "closed">("closed")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const status = statusFromParent ?? "closed"
 
   const handleOpen = async () => {
     setLoading(true)
     setError(null)
     try {
       await api.servo.open()
-      onStatusChange?.("opened")
+      setStatus("opened")
     } catch (err) {
       setError("Не удалось открыть")
     } finally {
@@ -757,7 +753,7 @@ function DoorControl({
     setError(null)
     try {
       await api.servo.close()
-      onStatusChange?.("closed")
+      setStatus("closed")
     } catch (err) {
       setError("Не удалось закрыть")
     } finally {
@@ -1035,7 +1031,6 @@ export default function HomePage() {
   const [newCameraMacIp, setNewCameraMacIp] = useState("")
   const [creatingDevice, setCreatingDevice] = useState(false)
   const [dashboardRefreshing, setDashboardRefreshing] = useState(false)
-  const [doorStatus, setDoorStatus] = useState<"opened" | "closed" | null>(null)
 
   const handleToggleScenario = useCallback(async (scenarioId: number) => {
     const scenario = scenarios.find(s => s.id === scenarioId)
@@ -1124,16 +1119,12 @@ export default function HomePage() {
     await new Promise((r) => requestAnimationFrame(r))
     await new Promise((r) => requestAnimationFrame(r))
     try {
-      const [scenarioData, deviceData, servoStatus] = await Promise.all([
+      const [scenarioData, deviceData] = await Promise.all([
         api.scenarios.list(),
         api.devices.list(),
-        api.servo.status().catch(() => ({})),
       ])
       setScenarios(scenarioData)
       setDevices(deviceData)
-      const raw = (servoStatus as Record<string, unknown>)?.state ?? (servoStatus as Record<string, unknown>)?.status ?? (servoStatus as Record<string, unknown>)?.position
-      const s = typeof raw === "string" ? raw.toLowerCase() : ""
-      setDoorStatus(s.includes("open") ? "opened" : "closed")
     } catch (error) {
       console.error("Failed to refetch dashboard:", error)
     } finally {
@@ -1144,16 +1135,12 @@ export default function HomePage() {
   useEffect(() => {
     async function load() {
       try {
-        const [scenarioData, deviceData, servoStatus] = await Promise.all([
+        const [scenarioData, deviceData] = await Promise.all([
           api.scenarios.list(),
           api.devices.list(),
-          api.servo.status().catch(() => ({})),
         ])
         setScenarios(scenarioData)
         setDevices(deviceData)
-        const raw = (servoStatus as Record<string, unknown>)?.state ?? (servoStatus as Record<string, unknown>)?.status ?? (servoStatus as Record<string, unknown>)?.position
-        const s = typeof raw === "string" ? raw.toLowerCase() : ""
-        setDoorStatus(s.includes("open") ? "opened" : "closed")
       } catch (error) {
         console.error("Failed to load data:", error)
       } finally {
@@ -1501,8 +1488,6 @@ export default function HomePage() {
                       onDragOver={() => handleWidgetDragOver(widget.key)}
                       onDragEnd={handleWidgetDragEnd}
                       isDragging={draggedWidgetKey === widget.key}
-                      status={doorStatus}
-                      onStatusChange={setDoorStatus}
                     />
                   )
                 }
