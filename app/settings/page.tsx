@@ -4,69 +4,111 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { api, type DeviceResponse } from "@/lib/api"
 import {
-  Zap, ArrowLeft, Settings as SettingsIcon, Loader2, Wifi, WifiOff,
+  ArrowLeft, Settings as SettingsIcon, Loader2, Wifi, WifiOff,
   Smartphone, Bell, Lock, User, Trash2, Edit3, Plus
 } from "lucide-react"
 import { MobileNav } from "@/components/mobile-nav"
+
+const DEVICE_TYPES = [
+  { value: "light", label: "Свет" },
+  { value: "camera", label: "Камера" },
+  { value: "switch", label: "Выключатель" },
+  { value: "thermostat", label: "Термостат" },
+  { value: "sensor", label: "Датчик" },
+]
 
 export default function SettingsPage() {
   const router = useRouter()
   const [devices, setDevices] = useState<DeviceResponse[]>([])
   const [loading, setLoading] = useState(true)
   const [activeSection, setActiveSection] = useState<'devices' | 'notifications' | 'account'>('devices')
+
   const [editingDevice, setEditingDevice] = useState<DeviceResponse | null>(null)
   const [editName, setEditName] = useState("")
   const [editLocation, setEditLocation] = useState("")
   const [updating, setUpdating] = useState(false)
 
+  const [showCreate, setShowCreate] = useState(false)
+  const [newName, setNewName] = useState("")
+  const [newType, setNewType] = useState("light")
+  const [newLocation, setNewLocation] = useState("")
+  const [creating, setCreating] = useState(false)
+
   useEffect(() => {
     loadDevices()
   }, [])
 
-  const loadDevices = async () => {
+  async function loadDevices() {
     try {
       const data = await api.devices.list()
       setDevices(data)
-    } catch (error) {
-      console.error('Failed to load devices:', error)
+    } catch (e) {
+      console.error("loadDevices", e)
     } finally {
       setLoading(false)
     }
   }
 
-  const handleDeleteDevice = async (deviceId: number) => {
-    if (!confirm('Удалить это устройство?')) return
-
+  async function handleDelete(deviceId: number) {
+    if (!confirm("Удалить это устройство?")) return
     try {
       await api.devices.delete(deviceId)
-      setDevices(prev => prev.filter(d => d.id !== deviceId))
-    } catch (error) {
-      console.error('Failed to delete device:', error)
-      alert(`Ошибка удаления: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+      setDevices((prev) => prev.filter((d) => d.id !== deviceId))
+    } catch (e) {
+      alert(`Ошибка: ${e instanceof Error ? e.message : "Не удалось удалить"}`)
     }
   }
 
-  const openEdit = (device: DeviceResponse) => {
+  function openEdit(device: DeviceResponse) {
     setEditingDevice(device)
     setEditName(device.name)
     setEditLocation(device.location ?? "")
   }
 
-  const handleUpdateDevice = async () => {
+  async function handleUpdate() {
     if (!editingDevice) return
+    const name = editName.trim()
+    if (!name) return
     setUpdating(true)
     try {
       await api.devices.update(editingDevice.id, {
-        name: editName.trim() || editingDevice.name,
+        name,
         location: editLocation.trim() || null,
       })
-      await loadDevices()
+      setDevices((prev) =>
+        prev.map((d) =>
+          d.id === editingDevice.id
+            ? { ...d, name, location: editLocation.trim() || null }
+            : d
+        )
+      )
       setEditingDevice(null)
-    } catch (error) {
-      console.error('Failed to update device:', error)
-      alert(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+    } catch (e) {
+      alert(`Ошибка: ${e instanceof Error ? e.message : "Не удалось сохранить"}`)
     } finally {
       setUpdating(false)
+    }
+  }
+
+  async function handleCreate() {
+    const name = newName.trim()
+    if (!name) return
+    setCreating(true)
+    try {
+      const device = await api.devices.create({
+        name,
+        device_type: newType,
+        location: newLocation.trim() || undefined,
+      })
+      setDevices((prev) => [...prev, device])
+      setShowCreate(false)
+      setNewName("")
+      setNewType("light")
+      setNewLocation("")
+    } catch (e) {
+      alert(`Ошибка: ${e instanceof Error ? e.message : "Не удалось добавить"}`)
+    } finally {
+      setCreating(false)
     }
   }
 
@@ -157,7 +199,7 @@ export default function SettingsPage() {
                         </p>
                       </div>
                       <button
-                        onClick={() => router.push('/')}
+                        onClick={() => setShowCreate(true)}
                         className="flex items-center gap-2 rounded-[var(--radius-md)] px-4 py-2 text-xs font-semibold text-white"
                         style={{ background: "var(--primary)" }}
                       >
@@ -217,7 +259,7 @@ export default function SettingsPage() {
                                 <Edit3 className="h-3.5 w-3.5" />
                               </button>
                               <button
-                                onClick={() => handleDeleteDevice(device.id)}
+                                onClick={() => handleDelete(device.id)}
                                 className="rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-red-50"
                                 style={{ color: "#ff6b6b" }}
                               >
@@ -361,52 +403,94 @@ export default function SettingsPage() {
             <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
               {editingDevice.device_type}
             </p>
-
             <div className="mt-5 space-y-4">
               <div>
-                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                  Название
-                </label>
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Название</label>
                 <input
                   autoFocus
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleUpdateDevice()}
+                  onKeyDown={(e) => e.key === "Enter" && handleUpdate()}
                   placeholder="Название"
                   className="glass-input h-11 w-full px-3 text-sm"
                   style={{ color: "var(--foreground)" }}
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
-                  Расположение
-                </label>
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Расположение</label>
                 <input
                   value={editLocation}
                   onChange={(e) => setEditLocation(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleUpdateDevice()}
+                  onKeyDown={(e) => e.key === "Enter" && handleUpdate()}
                   placeholder="Комната или зона"
                   className="glass-input h-11 w-full px-3 text-sm"
                   style={{ color: "var(--foreground)" }}
                 />
               </div>
             </div>
-
             <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => setEditingDevice(null)}
-                className="h-10 rounded-[var(--radius-md)] px-4 text-sm font-medium transition-colors hover:bg-white/40"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Отмена
-              </button>
-              <button
-                onClick={handleUpdateDevice}
-                disabled={updating}
-                className="flex h-10 items-center gap-2 rounded-[var(--radius-md)] px-5 text-sm font-medium text-white transition-all disabled:opacity-50"
-                style={{ background: "var(--primary)" }}
-              >
+              <button onClick={() => setEditingDevice(null)} className="h-10 rounded-[var(--radius-md)] px-4 text-sm font-medium hover:bg-white/40" style={{ color: "var(--text-secondary)" }}>Отмена</button>
+              <button onClick={handleUpdate} disabled={updating} className="flex h-10 items-center gap-2 rounded-[var(--radius-md)] px-5 text-sm font-medium text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
                 {updating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Сохранить"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showCreate && (
+        <div
+          className="overlay-blur fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => { setShowCreate(false); setNewName(""); setNewType("light"); setNewLocation("") }}
+        >
+          <div
+            className="glass-dialog w-full max-w-md rounded-[var(--radius-2xl)] p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>Добавить устройство</h2>
+            <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>Новое устройство в системе</p>
+            <div className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Название</label>
+                <input
+                  autoFocus
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                  placeholder="Например: Свет в кухне"
+                  className="glass-input h-11 w-full px-3 text-sm"
+                  style={{ color: "var(--foreground)" }}
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Тип</label>
+                <select
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value)}
+                  className="glass-input h-11 w-full px-3 text-sm"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  {DEVICE_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>Расположение</label>
+                <input
+                  value={newLocation}
+                  onChange={(e) => setNewLocation(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                  placeholder="Комната или зона"
+                  className="glass-input h-11 w-full px-3 text-sm"
+                  style={{ color: "var(--foreground)" }}
+                />
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end gap-3">
+              <button onClick={() => { setShowCreate(false); setNewName(""); setNewType("light"); setNewLocation("") }} className="h-10 rounded-[var(--radius-md)] px-4 text-sm font-medium hover:bg-white/40" style={{ color: "var(--text-secondary)" }}>Отмена</button>
+              <button onClick={handleCreate} disabled={!newName.trim() || creating} className="flex h-10 items-center gap-2 rounded-[var(--radius-md)] px-5 text-sm font-medium text-white disabled:opacity-50" style={{ background: "var(--primary)" }}>
+                {creating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Добавить"}
               </button>
             </div>
           </div>
