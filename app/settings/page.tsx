@@ -2,10 +2,11 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { api, type DeviceResponse } from "@/lib/api"
+import Link from "next/link"
+import { api, type DeviceResponse, type EventLogResponse } from "@/lib/api"
 import {
   ArrowLeft, Settings as SettingsIcon, Loader2, Wifi, WifiOff,
-  Smartphone, Bell, Lock, User, Trash2, Edit3, Plus
+  Smartphone, Bell, Lock, User, Trash2, Edit3, Plus, FileText, Send, ExternalLink, Map
 } from "lucide-react"
 import { MobileNav } from "@/components/mobile-nav"
 
@@ -21,7 +22,7 @@ export default function SettingsPage() {
   const router = useRouter()
   const [devices, setDevices] = useState<DeviceResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeSection, setActiveSection] = useState<'devices' | 'notifications' | 'account'>('devices')
+  const [activeSection, setActiveSection] = useState<'devices' | 'notifications' | 'account' | 'logs'>('devices')
 
   const [editingDevice, setEditingDevice] = useState<DeviceResponse | null>(null)
   const [editName, setEditName] = useState("")
@@ -34,9 +35,30 @@ export default function SettingsPage() {
   const [newLocation, setNewLocation] = useState("")
   const [creating, setCreating] = useState(false)
 
+  const [logs, setLogs] = useState<EventLogResponse[]>([])
+  const [logsLoading, setLogsLoading] = useState(false)
+  const [logsLimit] = useState(100)
+
   useEffect(() => {
     loadDevices()
   }, [])
+
+  useEffect(() => {
+    if (activeSection === 'logs') loadLogs()
+  }, [activeSection])
+
+  async function loadLogs() {
+    setLogsLoading(true)
+    try {
+      const data = await api.events.list({ limit: logsLimit })
+      setLogs(data)
+    } catch (e) {
+      console.error("loadLogs", e)
+      setLogs([])
+    } finally {
+      setLogsLoading(false)
+    }
+  }
 
   async function loadDevices() {
     try {
@@ -116,6 +138,7 @@ export default function SettingsPage() {
     { id: 'devices' as const, label: 'Устройства', icon: Smartphone },
     { id: 'notifications' as const, label: 'Уведомления', icon: Bell },
     { id: 'account' as const, label: 'Аккаунт', icon: User },
+    { id: 'logs' as const, label: 'Журнал событий', icon: FileText },
   ]
 
   return (
@@ -180,7 +203,7 @@ export default function SettingsPage() {
 
           {/* Content */}
           <div className="lg:col-span-3">
-            {loading && activeSection === 'devices' ? (
+            {(loading && activeSection === 'devices') || (logsLoading && activeSection === 'logs') ? (
               <div className="glass-card flex h-[60vh] items-center justify-center">
                 <Loader2 className="h-6 w-6 animate-spin" style={{ color: "var(--primary-lighter)" }} />
               </div>
@@ -295,6 +318,35 @@ export default function SettingsPage() {
                     </div>
 
                     <div className="glass-card" style={{ padding: 20 }}>
+                      <a
+                        href="https://t.me/cozy_smart_bot"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between gap-4 rounded-[var(--radius-md)] px-3 py-3 transition-colors hover:bg-white/40"
+                        style={{ marginBottom: 16 }}
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
+                            style={{ background: "var(--primary-wash)" }}
+                          >
+                            <Send className="h-5 w-5" style={{ color: "var(--primary)" }} />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                              Telegram-бот
+                            </p>
+                            <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                              Уведомления и управление домом через @cozy_smart_bot
+                            </p>
+                          </div>
+                        </div>
+                        <span className="flex shrink-0 items-center gap-1.5 text-xs font-medium" style={{ color: "var(--primary)" }}>
+                          Перейти в бот
+                          <ExternalLink className="h-3.5 w-3.5" />
+                        </span>
+                      </a>
+
                       <div className="space-y-4">
                         {[
                           { label: 'Push-уведомления', description: 'Получать уведомления на телефон', enabled: true },
@@ -322,6 +374,67 @@ export default function SettingsPage() {
                             </button>
                           </div>
                         ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Logs Section */}
+                {activeSection === 'logs' && (
+                  <div className="space-y-4">
+                    <div>
+                      <h2 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
+                        Журнал событий
+                      </h2>
+                      <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
+                        Последние события в системе
+                      </p>
+                    </div>
+
+                    <div className="glass-card overflow-hidden" style={{ padding: 0 }}>
+                      <div className="max-h-[60vh] overflow-y-auto">
+                        {logs.length === 0 && !logsLoading ? (
+                          <div className="flex flex-col items-center justify-center gap-3 py-12">
+                            <FileText className="h-10 w-10" style={{ color: "var(--primary-lightest)" }} />
+                            <p className="text-sm" style={{ color: "var(--text-muted)" }}>
+                              Нет записей
+                            </p>
+                          </div>
+                        ) : (
+                          <ul className="divide-y divide-black/5 dark:divide-white/5">
+                            {logs.map((log) => (
+                              <li key={log.id} className="px-4 py-3 text-left">
+                                <div className="flex flex-wrap items-baseline gap-2">
+                                  <span className="text-xs font-medium tabular-nums" style={{ color: "var(--text-muted)" }}>
+                                    {new Date(log.timestamp).toLocaleString("ru")}
+                                  </span>
+                                  <span
+                                    className="rounded-full px-2 py-0.5 text-[10px] font-medium"
+                                    style={{
+                                      background: log.status === "success" ? "#51cf6620" : log.status === "error" ? "#ff6b6b20" : "var(--surface-muted)",
+                                      color: log.status === "success" ? "#51cf66" : log.status === "error" ? "#ff6b6b" : "var(--text-muted)",
+                                    }}
+                                  >
+                                    {log.status}
+                                  </span>
+                                  <span className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
+                                    {log.event_category}
+                                  </span>
+                                  {log.event_type && (
+                                    <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
+                                      {log.event_type}
+                                    </span>
+                                  )}
+                                </div>
+                                {(log.description ?? log.target_name ?? log.error_message) && (
+                                  <p className="mt-1 text-xs" style={{ color: "var(--text-secondary)" }}>
+                                    {log.description ?? log.target_name ?? log.error_message}
+                                  </p>
+                                )}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -355,6 +468,14 @@ export default function SettingsPage() {
                             <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
                               user@cozy.home
                             </p>
+                            <Link
+                              href="/floor-plan"
+                              className="mt-2 flex items-center gap-2 text-xs font-medium transition-colors hover:opacity-80"
+                              style={{ color: "var(--primary)" }}
+                            >
+                              <Map className="h-3.5 w-3.5" />
+                              План помещений
+                            </Link>
                           </div>
                         </div>
 

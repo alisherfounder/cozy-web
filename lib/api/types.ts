@@ -234,3 +234,21 @@ export type CameraStreamStopResponse = {
   success: boolean
   device_id: number
 }
+
+export type EventLogResponse = {
+  id: number
+  event_type: string
+  event_category: string
+  event_action: string | null
+  target_type: string | null
+  target_id: number | null
+  target_name: string | null
+  user_type: string | null
+  user_id: number | null
+  user_name: string | null
+  description: string | null
+  details: Record<string, unknown> | null
+  status: string
+  error_message: string | null
+  timestamp: string
+}

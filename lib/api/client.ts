@@ -26,6 +26,7 @@ import type {
   UtilityStatsResponse,
   CameraStreamStartResponse,
   CameraStreamStopResponse,
+  EventLogResponse,
   ApiError,
 } from "./types"
 
@@ -204,6 +205,20 @@ function createChat(config: RequestConfig) {
 
     floorPlans: () =>
       request<FloorPlanUploadResponse[]>(config, "/api/chat/floor-plans"),
+
+    getFloorPlan: (planId: number) =>
+      request<FloorPlanUploadResponse>(config, `/api/chat/floor-plan/${planId}`),
+
+    updateFloorPlan: (planId: number, data: { name?: string }) =>
+      request<FloorPlanUploadResponse>(config, `/api/chat/floor-plan/${planId}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
+    deleteFloorPlan: (planId: number) =>
+      request<void>(config, `/api/chat/floor-plan/${planId}`, {
+        method: "DELETE",
+      }),
 
     generateScenario: (
       description: string,
@@ -387,6 +402,43 @@ function createServo(config: RequestConfig) {
   }
 }
 
+function createEvents(config: RequestConfig) {
+  return {
+    list: (params?: {
+      limit?: number
+      offset?: number
+      event_type?: string | null
+      event_category?: string | null
+      target_type?: string | null
+      target_id?: number | null
+      status?: string | null
+      from_date?: string | null
+      to_date?: string | null
+    }) => {
+      const search = new URLSearchParams()
+      if (params?.limit != null) search.set("limit", params.limit.toString())
+      if (params?.offset != null) search.set("offset", params.offset.toString())
+      if (params?.event_type != null) search.set("event_type", params.event_type)
+      if (params?.event_category != null) search.set("event_category", params.event_category)
+      if (params?.target_type != null) search.set("target_type", params.target_type)
+      if (params?.target_id != null) search.set("target_id", params.target_id.toString())
+      if (params?.status != null) search.set("status", params.status)
+      if (params?.from_date != null) search.set("from_date", params.from_date)
+      if (params?.to_date != null) search.set("to_date", params.to_date)
+      const query = search.toString() ? `?${search}` : ""
+      return request<EventLogResponse[]>(config, `/api/events/${query}`)
+    },
+
+    recent: (limit?: number) => {
+      const query = limit != null ? `?limit=${limit}` : ""
+      return request<EventLogResponse[]>(config, `/api/events/recent${query}`)
+    },
+
+    today: () =>
+      request<EventLogResponse[]>(config, "/api/events/today"),
+  }
+}
+
 function createCameras(config: RequestConfig) {
   return {
     startStream: (deviceId: number) =>
@@ -423,6 +475,7 @@ export function createCozyClient(baseUrl: string, headers?: Record<string, strin
     utilities: createUtilities(config),
     servo: createServo(config),
     cameras: createCameras(config),
+    events: createEvents(config),
 
     health: () => request<Record<string, unknown>>(config, "/health"),
     root: () => request<Record<string, unknown>>(config, "/"),

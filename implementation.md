@@ -1,14 +1,15 @@
+'''ts
+
 "use client"
 
 import { useEffect, useState, useCallback, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { api, type FloorPlanUploadResponse } from "@/lib/api"
-import { MarkdownMessage } from "@/components/markdown-message"
+import { api, type FloorPlanUploadResponse, type ChatMessageResponse } from "@/lib/api"
+import { MarkdownRenderer } from "@/components/markdown-renderer"
 import {
   Zap, ArrowLeft, Map, Upload, Loader2, Image as ImageIcon,
-  Sparkles, Send, MessageCircle, Trash2, Pencil
+  Sparkles, Home, Send, MessageCircle, X
 } from "lucide-react"
-import { MobileNav } from "@/components/mobile-nav"
 
 export default function FloorPlanPage() {
   const router = useRouter()
@@ -16,19 +17,15 @@ export default function FloorPlanPage() {
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<FloorPlanUploadResponse | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   // Chat state
   const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([])
   const [inputMessage, setInputMessage] = useState('')
   const [sendingMessage, setSendingMessage] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [editingPlan, setEditingPlan] = useState<FloorPlanUploadResponse | null>(null)
-  const [editName, setEditName] = useState("")
-  const [updating, setUpdating] = useState(false)
-  const [imageError, setImageError] = useState(false)
-  const [previewZoom, setPreviewZoom] = useState(1)
 
   useEffect(() => {
     loadFloorPlans()
@@ -40,15 +37,11 @@ export default function FloorPlanPage() {
   }, [messages])
 
   useEffect(() => {
+    // When a new plan is selected, initialize chat with AI greeting
     if (selectedPlan && messages.length === 0) {
       initializeChatForPlan(selectedPlan)
     }
   }, [selectedPlan])
-
-  useEffect(() => {
-    setImageError(false)
-    setPreviewZoom(1)
-  }, [selectedPlan?.id])
 
   const loadFloorPlans = async () => {
     try {
@@ -59,60 +52,96 @@ export default function FloorPlanPage() {
       }
     } catch (error) {
       console.error('Failed to load floor plans:', error)
+      setError(`Failed to load floor plans: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setLoading(false)
     }
   }
 
   const initializeChatForPlan = async (plan: FloorPlanUploadResponse) => {
-    const analysis = plan.ai_analysis as Record<string, unknown> | null
-    const content =
-      (typeof analysis?.summary === 'string' && analysis.summary) ||
-      (typeof analysis?.analysis === 'string' && analysis.analysis) ||
-      (typeof analysis?.response === 'string' && analysis.response) ||
-      (typeof analysis?.text === 'string' && analysis.text) ||
-      ''
-    setMessages(content ? [{ role: 'assistant', content }] : [])
-  }
+    // const roomsCount = plan.rooms && Array.isArray(plan.rooms) ? plan.rooms.length : 0
+    // const roomsList = plan.rooms && Array.isArray(plan.rooms)
+    //   ? plan.rooms.map(r => typeof r === 'string' ? r : (r as Record<string, unknown>).name).join(', ')
+    //   : 'не определены'
 
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+    // Get analysis data
+    // const analysis = plan.ai_analysis as Record<string, unknown> | null
+    // const automationTips = analysis?.automation_tips as string[] | undefined
+    // const suggestedScenarios = analysis?.suggested_scenarios as Array<{name: string, description: string}> | undefined
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl)
-    setPreviewUrl(null)
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      setSelectedFile(file)
-      setPreviewUrl(URL.createObjectURL(file))
-    } else {
-      setSelectedFile(null)
-    }
+    // let greeting = `Привет! Я проанализировал вашу планировку дома "${plan.name}".
+
+// 📊 Обнаружено помещений: ${roomsCount}
+// 🏠 Помещения: ${roomsList}
+
+// `
+
+    // Add automation tips if available
+    // if (automationTips && automationTips.length > 0) {
+    //   greeting += `**Рекомендации по автоматизации:**\n\n`
+    //   automationTips.forEach((tip, idx) => {
+    //     greeting += `${idx + 1}. ${tip}\n`
+    //   })
+    //   greeting += '\n'
+    // } else {
+    //   greeting += `**Рекомендации по автоматизации:**
+
+// 1. **Датчики движения** - установите в коридорах и ванной для автоматического включения света
+// 2. **Умное освещение** - в спальнях можно настроить сценарий "Доброе утро" с плавным включением
+// 3. **Климат-контроль** - датчики температуры помогут поддерживать комфорт в каждой комнате
+// 4. **Безопасность** - датчики на дверях и окнах для контроля периметра
+
+// `
+    // }
+
+    // Add suggested scenarios if available
+    // if (suggestedScenarios && suggestedScenarios.length > 0) {
+    //   greeting += `**Предложенные сценарии:**\n\n`
+    //   suggestedScenarios.slice(0, 3).forEach(scenario => {
+    //     greeting += `• **${scenario.name}**: ${scenario.description}\n`
+    //   })
+    //   greeting += '\n'
+    // }
+
+    // greeting += `Задайте мне любые вопросы о том, как лучше автоматизировать ваш дом!`
+
+    setMessages([]) // Start with no initial messages
   }
 
   useEffect(() => {
+    // Clean up preview URL when component unmounts or selectedFile changes
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl)
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
     }
   }, [previewUrl])
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      setSelectedFile(file)
+      setPreviewUrl(URL.createObjectURL(file)) // Create new preview URL
+    } else {
+      setSelectedFile(null)
+      setPreviewUrl(null)
+    }
+  }
 
   const handleUpload = async () => {
     if (!selectedFile) return
 
     setUploading(true)
+    setError(null) // Clear previous errors
     try {
       const newPlan = await api.chat.uploadFloorPlan(selectedFile, selectedFile.name)
       setFloorPlans(prev => [newPlan, ...prev])
       setSelectedPlan(newPlan)
       setSelectedFile(null)
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-        setPreviewUrl(null)
-      }
-      setMessages([])
-      setPreviewZoom(1)
+      setMessages([]) // Reset messages for new plan
     } catch (error) {
       console.error('Failed to upload floor plan:', error)
-      alert(`Ошибка загрузки планировки: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+      setError(`Failed to upload floor plan: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setUploading(false)
     }
@@ -152,6 +181,24 @@ export default function FloorPlanPage() {
     }
   }
 
+  const handleDelete = async (planId: number) => {
+    if (!window.confirm("Are you sure you want to delete this floor plan?")) {
+      return
+    }
+    try {
+      await api.chat.deleteFloorPlan(planId)
+      setFloorPlans(prev => prev.filter(p => p.id !== planId))
+      if (selectedPlan?.id === planId) {
+        // Select the next available plan or null if no plans are left
+        const remainingPlans = floorPlans.filter(p => p.id !== planId)
+        setSelectedPlan(remainingPlans.length > 0 ? remainingPlans[0] : null)
+      }
+    } catch (error) {
+      console.error('Failed to delete floor plan:', error)
+      setError(`Failed to delete floor plan: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -159,48 +206,8 @@ export default function FloorPlanPage() {
     }
   }
 
-  const handleDeletePlan = async (planId: number) => {
-    if (!confirm('Удалить этот план?')) return
-    setDeletingId(planId)
-    try {
-      await api.chat.deleteFloorPlan(planId)
-      setFloorPlans(prev => prev.filter(p => p.id !== planId))
-      if (selectedPlan?.id === planId) {
-        const rest = floorPlans.filter(p => p.id !== planId)
-        setSelectedPlan(rest[0] ?? null)
-        setMessages([])
-      }
-    } catch (e) {
-      console.error('Delete floor plan failed', e)
-      alert(`Не удалось удалить: ${e instanceof Error ? e.message : 'Ошибка'}`)
-    } finally {
-      setDeletingId(null)
-    }
-  }
-
-  const openRename = (plan: FloorPlanUploadResponse) => {
-    setEditingPlan(plan)
-    setEditName(plan.name)
-  }
-
-  const handleRename = async () => {
-    if (!editingPlan || !editName.trim()) return
-    setUpdating(true)
-    try {
-      const updated = await api.chat.updateFloorPlan(editingPlan.id, { name: editName.trim() })
-      setFloorPlans(prev => prev.map(p => p.id === editingPlan.id ? updated : p))
-      if (selectedPlan?.id === editingPlan.id) setSelectedPlan(updated)
-      setEditingPlan(null)
-    } catch (e) {
-      console.error('Update floor plan failed', e)
-      alert(`Не удалось переименовать: ${e instanceof Error ? e.message : 'Ошибка'}`)
-    } finally {
-      setUpdating(false)
-    }
-  }
-
   return (
-    <div className="bg-mesh-gradient flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col" style={{ background: "var(--background)" }}>
       {/* Header */}
       <header
         className="sticky top-0 z-40 glass-heavy"
@@ -229,10 +236,18 @@ export default function FloorPlanPage() {
       </header>
 
       {/* Main Content */}
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-24 sm:px-6 md:py-8 md:pb-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-8">
+        {error && (
+          <div
+            className="mb-4 rounded-[var(--radius-md)] p-3 text-sm"
+            style={{ background: "var(--red-wash)", color: "var(--red)" }}
+          >
+            {error}
+          </div>
+        )}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Upload Section */}
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-6">
             <div className="glass-card" style={{ padding: 20 }}>
               <div className="mb-4 flex items-center gap-2">
                 <Upload className="h-4 w-4" style={{ color: "var(--primary)" }} />
@@ -259,31 +274,23 @@ export default function FloorPlanPage() {
                   className="hidden"
                 />
 
-                {selectedFile ? (
-                  <div className="flex h-full min-h-[180px] w-full flex-col items-center justify-center">
-                    {previewUrl ? (
-                      <img
-                        src={previewUrl}
-                        alt="Превью"
-                        className="max-h-[160px] w-auto max-w-full rounded-[var(--radius-sm)] object-contain"
-                      />
-                    ) : (
-                      <ImageIcon className="mx-auto mb-2 h-8 w-8" style={{ color: "var(--primary)" }} />
-                    )}
-                    <p className="mt-2 text-xs font-medium" style={{ color: "var(--foreground)" }}>
+                {selectedFile && previewUrl ? (
+                  <div className="text-center">
+                    <img src={previewUrl} alt="File Preview" className="mx-auto mb-2 h-24 w-auto object-contain" />
+                    <p className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
                       {selectedFile.name}
                     </p>
-                    <p className="mt-0.5 text-[10px]" style={{ color: "var(--text-muted)" }}>
+                    <p className="mt-1 text-[10px]" style={{ color: "var(--text-muted)" }}>
                       {(selectedFile.size / 1024 / 1024).toFixed(2)} МБ
                     </p>
                   </div>
                 ) : (
                   <div className="text-center">
-                    <ImageIcon className="mx-auto mb-2 h-10 w-10" style={{ color: "var(--text-muted)" }} />
+                    <Upload className="mx-auto mb-2 h-8 w-8" style={{ color: "var(--text-muted)" }} />
                     <p className="text-xs" style={{ color: "var(--text-muted)" }}>
                       Нажмите для выбора файла
                     </p>
-                    <p className="mt-1 text-[10px]" style={{ color: "var(--text-muted)" }}>
+                    <p className="mt-1 text-[10px]" style={{ color: "var(--text-muted)"}>
                       PNG, JPG до 10 МБ
                     </p>
                   </div>
@@ -302,69 +309,48 @@ export default function FloorPlanPage() {
                   'Загрузить и проанализировать'
                 )}
               </button>
-
-              {/* Previous Plans - CRUDL (hidden on mobile, shown on lg+) */}
-              {floorPlans.length > 0 && (
-                <div className="mt-6 hidden lg:block">
-                  <h3 className="mb-3 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                    Предыдущие планы ({floorPlans.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {floorPlans.map(plan => (
-                      <div
-                        key={plan.id}
-                        className="flex items-center gap-2 rounded-[var(--radius-sm)] p-2 transition-colors"
-                        style={{
-                          background: selectedPlan?.id === plan.id ? "var(--primary-wash)" : "transparent",
-                          border: selectedPlan?.id === plan.id ? "1px solid var(--primary)" : "1px solid transparent"
-                        }}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedPlan(plan)
-                            setMessages([])
-                          }}
-                          className="min-w-0 flex-1 text-left"
-                        >
-                          <p className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
-                            {plan.name}
-                          </p>
-                          <p className="mt-0.5 text-[10px]" style={{ color: "var(--text-muted)" }}>
-                            {new Date(plan.created_at).toLocaleDateString('ru-RU')}
-                          </p>
-                        </button>
-                        <div className="flex shrink-0 items-center gap-0.5">
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); openRename(plan) }}
-                            className="rounded-[var(--radius-sm)] p-1.5 transition-colors hover:bg-white/50"
-                            style={{ color: "var(--text-secondary)" }}
-                            title="Переименовать"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); handleDeletePlan(plan.id) }}
-                            disabled={deletingId === plan.id}
-                            className="rounded-[var(--radius-sm)] p-1.5 transition-colors hover:bg-red-50 disabled:opacity-50"
-                            style={{ color: "#ff6b6b" }}
-                            title="Удалить"
-                          >
-                            {deletingId === plan.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-3.5 w-3.5" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
+            {/* Previous Plans */}
+            {floorPlans.length > 0 && (
+              <div className="glass-card" style={{ padding: 20 }}>
+                <h3 className="mb-3 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
+                  Предыдущие планы ({floorPlans.length})
+                </h3>
+                <div className="space-y-2">
+                  {floorPlans.map(plan => (
+                    <div
+                      key={plan.id}
+                      className="flex items-center justify-between rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-white/40"
+                      style={{
+                        background: selectedPlan?.id === plan.id ? "var(--primary-wash)" : "transparent",
+                        border: selectedPlan?.id === plan.id ? "1px solid var(--primary)" : "1px solid transparent"
+                      }}
+                    >
+                      <button
+                        onClick={() => {
+                          setSelectedPlan(plan)
+                          setMessages([]) // Reset chat for new plan
+                        }}
+                        className="flex-1 text-left"
+                      >
+                        <p className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
+                          {plan.name}
+                        </p>
+                        <p className="mt-0.5 text-[10px]" style={{ color: "var(--text-muted)" }}>
+                          {new Date(plan.created_at).toLocaleDateString('ru-RU')}
+                        </p>
+                      </button>
+                      <button
+                        onClick={() => handleDelete(plan.id)}
+                        className="p-1 text-gray-400 hover:text-red-500"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Preview & Chat Section */}
@@ -375,57 +361,46 @@ export default function FloorPlanPage() {
               </div>
             ) : !selectedPlan ? (
               <div className="glass-card flex h-[60vh] flex-col items-center justify-center gap-3">
-                <ImageIcon className="h-16 w-16" style={{ color: "var(--primary-lightest)" }} />
+                <Home className="h-12 w-12" style={{ color: "var(--primary-lightest)" }} />
                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>
                   Загрузите план помещения для анализа
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
-                {/* Plan Preview - kept after upload, interactive */}
+                {/* Plan Image */}
                 <div className="glass-card overflow-hidden" style={{ padding: 0 }}>
                   <div
-                    className="relative flex min-h-[200px] items-center justify-center overflow-auto p-4"
+                    className="relative"
                     style={{
                       background: "var(--surface-muted)",
-                      maxHeight: 320,
+                      minHeight: 300
                     }}
                   >
-                    {imageError ? (
-                      <div className="flex flex-col items-center justify-center gap-2 py-8">
-                        <ImageIcon className="h-12 w-12" style={{ color: "var(--text-muted)" }} />
-                        <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                          Не удалось загрузить изображение
-                        </p>
+                    <img
+                      src={`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/chat/floor-plan/${selectedPlan.id}/image`}
+                      alt={selectedPlan.name}
+                      className="h-full w-full object-contain"
+                      style={{ maxHeight: 500 }}
+                      onError={(e) => {
+                        // Fallback to icon if image fails to load
+                        e.currentTarget.style.display = 'none'
+                        const parent = e.currentTarget.parentElement
+                        if (parent) {
+                          const icon = document.createElement('div')
+                          icon.className = 'flex h-full items-center justify-center'
+                          icon.innerHTML = '<svg class="h-12 w-12" style="color: var(--text-muted)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>'
+                          parent.insertBefore(icon, e.currentTarget)
+                        }
+                      }}
+                    />
+                    <div className="absolute bottom-3 left-3">
+                      <div
+                        className="rounded-full px-3 py-1 text-xs font-medium"
+                        style={{ background: "var(--primary)", color: "white" }}
+                      >
+                        {selectedPlan.name}
                       </div>
-                    ) : (
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/chat/floor-plan/${selectedPlan.id}/image`}
-                        alt={selectedPlan.name}
-                        className="cursor-grab select-none object-contain transition-transform active:cursor-grabbing"
-                        style={{
-                          transform: `scale(${previewZoom})`,
-                          maxHeight: 280,
-                        }}
-                        draggable={false}
-                        onError={() => setImageError(true)}
-                      />
-                    )}
-                    <div className="absolute bottom-2 right-2 flex gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setPreviewZoom((z) => Math.max(0.5, z - 0.25))}
-                        className="rounded-[var(--radius-sm)] bg-black/20 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm hover:bg-black/30"
-                      >
-                        −
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPreviewZoom((z) => Math.min(2, z + 0.25))}
-                        className="rounded-[var(--radius-sm)] bg-black/20 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm hover:bg-black/30"
-                      >
-                        +
-                      </button>
                     </div>
                   </div>
                 </div>
@@ -456,17 +431,13 @@ export default function FloorPlanPage() {
                           className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                         >
                           <div
-                            className="max-w-[80%] rounded-[var(--radius-md)] px-3 py-2 text-xs [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-4 [&_ol]:pl-4 [&_p]:my-1 [&_strong]:font-semibold"
+                            className="max-w-[80%] rounded-[var(--radius-md)] px-3 py-2 text-xs"
                             style={{
                               background: msg.role === 'user' ? "var(--primary)" : "var(--surface-muted)",
                               color: msg.role === 'user' ? "white" : "var(--foreground)",
                             }}
                           >
-                            {msg.role === "user" ? (
-                              msg.content
-                            ) : (
-                              <MarkdownMessage content={msg.content} />
-                            )}
+                            <MarkdownRenderer content={msg.content} />
                           </div>
                         </div>
                       ))
@@ -511,52 +482,8 @@ export default function FloorPlanPage() {
           </div>
         </div>
       </main>
-
-      {editingPlan && (
-        <div
-          className="overlay-blur fixed inset-0 z-50 flex items-center justify-center p-4"
-          onClick={() => setEditingPlan(null)}
-        >
-          <div
-            className="glass-dialog w-full max-w-md rounded-[var(--radius-2xl)] p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>
-              Переименовать план
-            </h2>
-            <div className="mt-4">
-              <input
-                autoFocus
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleRename()}
-                placeholder="Название"
-                className="glass-input h-11 w-full px-3 text-sm"
-                style={{ color: "var(--foreground)" }}
-              />
-            </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => setEditingPlan(null)}
-                className="h-10 rounded-[var(--radius-md)] px-4 text-sm font-medium hover:bg-white/40"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Отмена
-              </button>
-              <button
-                onClick={handleRename}
-                disabled={!editName.trim() || updating}
-                className="flex h-10 items-center gap-2 rounded-[var(--radius-md)] px-5 text-sm font-medium text-white disabled:opacity-50"
-                style={{ background: "var(--primary)" }}
-              >
-                {updating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Сохранить"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <MobileNav />
     </div>
   )
 }
+
+'''
