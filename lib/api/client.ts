@@ -21,6 +21,7 @@ import type {
   UtilityReadingResponse,
   UtilityBillCalculate,
   UtilityBillResponse,
+  UtilityBillUpdate,
   UtilityBillPayRequest,
   UtilityStatsResponse,
   CameraStreamStartResponse,
@@ -348,11 +349,20 @@ function createUtilities(config: RequestConfig) {
     getBill: (billId: number) =>
       request<UtilityBillResponse>(config, `/api/utilities/bills/${billId}`),
 
+    updateBill: (billId: number, data: UtilityBillUpdate) =>
+      request<UtilityBillResponse>(config, `/api/utilities/bills/${billId}`, {
+        method: "PUT",
+        body: JSON.stringify(data),
+      }),
+
     payBill: (billId: number, data: UtilityBillPayRequest) =>
       request<UtilityBillResponse>(config, `/api/utilities/bills/${billId}/pay`, {
         method: "POST",
         body: JSON.stringify(data),
       }),
+
+    deleteBill: (billId: number) =>
+      request<void>(config, `/api/utilities/bills/${billId}`, { method: "DELETE" }),
 
     stats: () =>
       request<UtilityStatsResponse>(config, "/api/utilities/stats"),

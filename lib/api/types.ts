@@ -204,6 +204,13 @@ export type UtilityBillResponse = {
   created_at: string
 }
 
+export type UtilityBillUpdate = {
+  amount?: number | null
+  period_start?: string | null
+  period_end?: string | null
+  status?: string | null
+}
+
 export type UtilityBillPayRequest = {
   payment_method?: string  // card, cash, bank_transfer
 }
