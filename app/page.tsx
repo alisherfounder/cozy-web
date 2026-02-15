@@ -52,7 +52,6 @@ import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 import { api } from "@/lib/api"
 import type { ScenarioResponse, DeviceResponse } from "@/lib/api"
 import { usePreferences, type GridSize, GRID_SIZE_CONFIG } from "@/lib/preferences"
-import { PreferencesButton } from "@/components/preferences-panel"
 import { MobileNav } from "@/components/mobile-nav"
 
 function formatDate(iso: string) {
@@ -1367,9 +1366,6 @@ export default function HomePage() {
               <span className="text-xs font-medium">Настройки</span>
             </button>
           </div>
-          <div className="flex md:hidden items-center gap-1">
-            <PreferencesButton />
-          </div>
         </div>
       </header>
 
@@ -1934,7 +1930,7 @@ export default function HomePage() {
       {/* Add Device Modal */}
       {showAddDevice && (
         <div
-          className="overlay-blur fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+          className="overlay-blur fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={() => {
             setShowAddDevice(false)
             setNewDeviceName("")
@@ -1944,7 +1940,7 @@ export default function HomePage() {
           }}
         >
           <div
-            className="glass-dialog w-full max-w-md rounded-b-none p-5 sm:rounded-b-[var(--radius-2xl)] sm:p-6"
+            className="glass-dialog w-full max-w-md rounded-[var(--radius-2xl)] p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>

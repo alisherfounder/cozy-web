@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation"
 import { api, type DeviceResponse } from "@/lib/api"
 import {
   Zap, ArrowLeft, Settings as SettingsIcon, Loader2, Wifi, WifiOff,
-  Smartphone, Bell, Globe, Lock, User, Palette, Moon, Sun,
-  Trash2, Edit3, Plus
+  Smartphone, Bell, Lock, User, Trash2, Edit3, Plus
 } from "lucide-react"
 import { MobileNav } from "@/components/mobile-nav"
 
@@ -14,7 +13,11 @@ export default function SettingsPage() {
   const router = useRouter()
   const [devices, setDevices] = useState<DeviceResponse[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeSection, setActiveSection] = useState<'devices' | 'notifications' | 'appearance' | 'account'>('devices')
+  const [activeSection, setActiveSection] = useState<'devices' | 'notifications' | 'account'>('devices')
+  const [editingDevice, setEditingDevice] = useState<DeviceResponse | null>(null)
+  const [editName, setEditName] = useState("")
+  const [editLocation, setEditLocation] = useState("")
+  const [updating, setUpdating] = useState(false)
 
   useEffect(() => {
     loadDevices()
@@ -43,10 +46,33 @@ export default function SettingsPage() {
     }
   }
 
+  const openEdit = (device: DeviceResponse) => {
+    setEditingDevice(device)
+    setEditName(device.name)
+    setEditLocation(device.location ?? "")
+  }
+
+  const handleUpdateDevice = async () => {
+    if (!editingDevice) return
+    setUpdating(true)
+    try {
+      await api.devices.update(editingDevice.id, {
+        name: editName.trim() || editingDevice.name,
+        location: editLocation.trim() || null,
+      })
+      await loadDevices()
+      setEditingDevice(null)
+    } catch (error) {
+      console.error('Failed to update device:', error)
+      alert(`Ошибка: ${error instanceof Error ? error.message : 'Неизвестная ошибка'}`)
+    } finally {
+      setUpdating(false)
+    }
+  }
+
   const sections = [
     { id: 'devices' as const, label: 'Устройства', icon: Smartphone },
     { id: 'notifications' as const, label: 'Уведомления', icon: Bell },
-    { id: 'appearance' as const, label: 'Внешний вид', icon: Palette },
     { id: 'account' as const, label: 'Аккаунт', icon: User },
   ]
 
@@ -184,6 +210,7 @@ export default function SettingsPage() {
 
                             <div className="flex items-center gap-2">
                               <button
+                                onClick={() => openEdit(device)}
                                 className="rounded-[var(--radius-sm)] p-2 transition-colors hover:bg-white/40"
                                 style={{ color: "var(--text-secondary)" }}
                               >
@@ -258,74 +285,6 @@ export default function SettingsPage() {
                   </div>
                 )}
 
-                {/* Appearance Section */}
-                {activeSection === 'appearance' && (
-                  <div className="space-y-4">
-                    <div>
-                      <h2 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
-                        Внешний вид
-                      </h2>
-                      <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                        Настройка темы и отображения
-                      </p>
-                    </div>
-
-                    <div className="glass-card" style={{ padding: 20 }}>
-                      <div className="space-y-4">
-                        <div>
-                          <p className="mb-3 text-sm font-medium" style={{ color: "var(--foreground)" }}>
-                            Тема оформления
-                          </p>
-                          <div className="grid grid-cols-3 gap-3">
-                            {[
-                              { label: 'Светлая', icon: Sun, active: true },
-                              { label: 'Темная', icon: Moon, active: false },
-                              { label: 'Авто', icon: Globe, active: false },
-                            ].map((theme) => {
-                              const Icon = theme.icon
-                              return (
-                                <button
-                                  key={theme.label}
-                                  className="glass-card flex flex-col items-center gap-2 py-4 transition-all"
-                                  style={{
-                                    padding: 16,
-                                    border: theme.active ? "2px solid var(--primary)" : "2px solid transparent"
-                                  }}
-                                >
-                                  <Icon className="h-6 w-6" style={{ color: theme.active ? "var(--primary)" : "var(--text-muted)" }} />
-                                  <span className="text-xs font-medium" style={{ color: theme.active ? "var(--primary)" : "var(--text-secondary)" }}>
-                                    {theme.label}
-                                  </span>
-                                </button>
-                              )
-                            })}
-                          </div>
-                        </div>
-
-                        <div className="flex items-center justify-between pt-2">
-                          <div>
-                            <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
-                              Эффекты размытия
-                            </p>
-                            <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                              Glassmorphism эффекты для карточек
-                            </p>
-                          </div>
-                          <button
-                            className="relative h-6 w-11 rounded-full"
-                            style={{ background: "var(--primary)" }}
-                          >
-                            <div
-                              className="absolute top-1 h-4 w-4 rounded-full bg-white transition-transform"
-                              style={{ transform: 'translateX(22px)' }}
-                            />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
                 {/* Account Section */}
                 {activeSection === 'account' && (
                   <div className="space-y-4">
@@ -386,6 +345,73 @@ export default function SettingsPage() {
           </div>
         </div>
       </main>
+
+      {editingDevice && (
+        <div
+          className="overlay-blur fixed inset-0 z-50 flex items-center justify-center p-4"
+          onClick={() => setEditingDevice(null)}
+        >
+          <div
+            className="glass-dialog w-full max-w-md rounded-[var(--radius-2xl)] p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>
+              Редактировать устройство
+            </h2>
+            <p className="mt-1 text-sm" style={{ color: "var(--text-secondary)" }}>
+              {editingDevice.device_type}
+            </p>
+
+            <div className="mt-5 space-y-4">
+              <div>
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                  Название
+                </label>
+                <input
+                  autoFocus
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleUpdateDevice()}
+                  placeholder="Название"
+                  className="glass-input h-11 w-full px-3 text-sm"
+                  style={{ color: "var(--foreground)" }}
+                />
+              </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                  Расположение
+                </label>
+                <input
+                  value={editLocation}
+                  onChange={(e) => setEditLocation(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleUpdateDevice()}
+                  placeholder="Комната или зона"
+                  className="glass-input h-11 w-full px-3 text-sm"
+                  style={{ color: "var(--foreground)" }}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                onClick={() => setEditingDevice(null)}
+                className="h-10 rounded-[var(--radius-md)] px-4 text-sm font-medium transition-colors hover:bg-white/40"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleUpdateDevice}
+                disabled={updating}
+                className="flex h-10 items-center gap-2 rounded-[var(--radius-md)] px-5 text-sm font-medium text-white transition-all disabled:opacity-50"
+                style={{ background: "var(--primary)" }}
+              >
+                {updating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Сохранить"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <MobileNav />
     </div>

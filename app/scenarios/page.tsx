@@ -219,11 +219,11 @@ export default function ScenariosPage() {
 
       {showCreate && (
         <div
-          className="overlay-blur fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+          className="overlay-blur fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={() => { setShowCreate(false); setNewName(""); setNewDesc("") }}
         >
           <div
-            className="glass-dialog w-full max-w-md rounded-b-none p-5 sm:rounded-b-[var(--radius-2xl)] sm:p-6"
+            className="glass-dialog w-full max-w-md rounded-[var(--radius-2xl)] p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-base font-semibold" style={{ color: 'var(--foreground)' }}>

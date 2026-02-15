@@ -29,6 +29,7 @@ export default function CamerasPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [createName, setCreateName] = useState("")
   const [createLocation, setCreateLocation] = useState("")
+  const [createIp, setCreateIp] = useState("")
   const [creating, setCreating] = useState(false)
 
   const [editingCamera, setEditingCamera] = useState<DeviceResponse | null>(null)
@@ -59,15 +60,26 @@ export default function CamerasPage() {
     if (!createName.trim()) return
     setCreating(true)
     try {
-      await api.devices.create({
+      const device = await api.devices.create({
         name: createName.trim(),
         device_type: "camera",
         location: createLocation.trim() || undefined,
       })
+      if (createIp.trim()) {
+        const cleanIp = createIp.trim().split(":")[0]
+        await api.devices.update(device.id, {
+          state: {
+            mac_stream_url: `http://${cleanIp}:5003/stream`,
+            on: false,
+            streaming: false,
+          },
+        })
+      }
       await loadCameras()
       setShowCreate(false)
       setCreateName("")
       setCreateLocation("")
+      setCreateIp("")
     } catch (error) {
       console.error("Failed to create camera:", error)
       alert(`Ошибка: ${error instanceof Error ? error.message : "Неизвестная ошибка"}`)
@@ -374,15 +386,16 @@ export default function CamerasPage() {
 
       {showCreate && (
         <div
-          className="overlay-blur fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+          className="overlay-blur fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={() => {
             setShowCreate(false)
             setCreateName("")
             setCreateLocation("")
+            setCreateIp("")
           }}
         >
           <div
-            className="glass-dialog w-full max-w-md rounded-b-none p-5 sm:rounded-b-[var(--radius-2xl)] sm:p-6"
+            className="glass-dialog w-full max-w-md rounded-[var(--radius-2xl)] p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>
@@ -420,6 +433,19 @@ export default function CamerasPage() {
                   style={{ color: "var(--foreground)" }}
                 />
               </div>
+              <div>
+                <label className="mb-1.5 block text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
+                  IP-адрес <span style={{ color: "var(--text-muted)" }}>(необязательно)</span>
+                </label>
+                <input
+                  value={createIp}
+                  onChange={(e) => setCreateIp(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleCreate()}
+                  placeholder="192.168.1.1 или 192.168.1.1:5003"
+                  className="glass-input h-11 w-full px-3 text-sm"
+                  style={{ color: "var(--foreground)" }}
+                />
+              </div>
             </div>
 
             <div className="mt-6 flex justify-end gap-3">
@@ -428,6 +454,7 @@ export default function CamerasPage() {
                   setShowCreate(false)
                   setCreateName("")
                   setCreateLocation("")
+                  setCreateIp("")
                 }}
                 className="h-10 rounded-[var(--radius-md)] px-4 text-sm font-medium transition-colors hover:bg-white/40"
                 style={{ color: "var(--text-secondary)" }}
@@ -450,11 +477,11 @@ export default function CamerasPage() {
 
       {editingCamera && (
         <div
-          className="overlay-blur fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+          className="overlay-blur fixed inset-0 z-50 flex items-center justify-center p-4"
           onClick={() => setEditingCamera(null)}
         >
           <div
-            className="glass-dialog w-full max-w-md rounded-b-none p-5 sm:rounded-b-[var(--radius-2xl)] sm:p-6"
+            className="glass-dialog w-full max-w-md rounded-[var(--radius-2xl)] p-6"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>
