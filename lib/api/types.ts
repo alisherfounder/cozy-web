@@ -79,6 +79,7 @@ export type DeviceResponse = {
   state: Record<string, unknown> | null
   capabilities: Record<string, boolean> | null
   created_at: string
+  gpio_pin?: number | null
 }
 
 export type DeviceControlRequest = {
