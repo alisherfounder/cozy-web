@@ -288,3 +288,42 @@ input[type="range"]::-moz-range-thumb:active {
   transform: scale(1.05);
   background: #FAF0ED;
 }
+
+/* ─── Mobile responsive overrides ──────────────────── */
+
+@media (max-width: 639px) {
+  .scenario-card-wrap {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 150px;
+  }
+
+  .device-widget-wrap {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 128px;
+  }
+
+  .device-widget-wrap .glass-card {
+    padding: 12px !important;
+  }
+
+  .scenario-card-wrap .glass-card {
+    padding: 14px !important;
+  }
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* ─── iOS safe area ────────────────────────────────── */
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}

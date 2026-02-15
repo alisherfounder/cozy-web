@@ -155,7 +155,7 @@ export default function BillsPage() {
           <div className="space-y-6">
             {/* Stats Cards */}
             {stats && (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
                 <div className="glass-card" style={{ padding: 16 }}>
                   <p className="text-xs" style={{ color: "var(--text-muted)" }}>Счетчиков</p>
                   <p className="mt-1 text-2xl font-bold" style={{ color: "var(--foreground)" }}>
@@ -228,10 +228,10 @@ export default function BillsPage() {
                     const StatusIcon = getBillStatusIcon(bill.status)
                     const meter = meters.find(m => m.id === bill.meter_id)
 
-                    return (
+                      return (
                       <div key={bill.id} className="glass-card" style={{ padding: 16 }}>
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
                               <h3 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                                 {meter ? getMeterLabel(meter.meter_type) : 'Счет'}
@@ -260,9 +260,9 @@ export default function BillsPage() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-3">
-                            <div className="text-right">
-                              <p className="text-2xl font-bold" style={{ color: "var(--foreground)" }}>
+                          <div className="flex items-center justify-between gap-3 sm:justify-end">
+                            <div className="sm:text-right">
+                              <p className="text-xl sm:text-2xl font-bold" style={{ color: "var(--foreground)" }}>
                                 {bill.amount.toFixed(2)} ₽
                               </p>
                               {bill.paid_at && (

@@ -109,7 +109,7 @@ function ScenarioCard({
 
   return (
     <div
-      className="relative shrink-0"
+      className="scenario-card-wrap relative shrink-0 sm:shrink-0"
       style={{
         width: w,
         height: h,
@@ -137,7 +137,7 @@ function ScenarioCard({
           <button
             onClick={handleToggleClick}
             disabled={isToggling}
-            className={`flex ${isLarge ? "h-12 w-12" : "h-10 w-10"} items-center justify-center rounded-[var(--radius-md)] transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`flex ${isLarge ? "h-12 w-12" : "h-9 w-9 sm:h-10 sm:w-10"} items-center justify-center rounded-[var(--radius-md)] transition-all hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed`}
             style={{ background: scenario.is_active ? "var(--primary)" : "var(--primary-wash)" }}
             title={scenario.is_active ? "Остановить сценарий" : "Запустить сценарий"}
           >
@@ -149,10 +149,10 @@ function ScenarioCard({
               <Play className={isLarge ? "h-5 w-5" : "h-4 w-4"} style={{ color: "var(--primary)" }} />
             )}
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             {scenario.is_template && (
               <span
-                className={`rounded-[var(--radius-sm)] px-2 py-1 ${isLarge ? "text-xs" : "text-[10px]"} font-semibold`}
+                className={`rounded-[var(--radius-sm)] px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-[10px] ${isLarge ? "sm:text-xs" : ""} font-semibold`}
                 style={{ background: "var(--primary-wash)", color: "var(--primary)" }}
               >
                 Шаблон
@@ -160,37 +160,37 @@ function ScenarioCard({
             )}
             <button
               onClick={handleSizeClick}
-              className="rounded-[var(--radius-sm)] p-1.5 transition-all hover:scale-110 hover:bg-white/60"
+              className="hidden sm:block rounded-[var(--radius-sm)] p-1.5 transition-all hover:scale-110 hover:bg-white/60"
               style={{ color: "var(--primary)" }}
               title="Изменить размер"
             >
               <Maximize2 className="h-3.5 w-3.5" />
             </button>
             <div
-              className={`rounded-full ${isLarge ? "h-3 w-3" : "h-2.5 w-2.5"}`}
+              className={`rounded-full ${isLarge ? "h-3 w-3" : "h-2 w-2 sm:h-2.5 sm:w-2.5"}`}
               style={{ background: scenario.is_active ? "#51cf66" : "var(--primary-lightest)" }}
             />
           </div>
         </div>
 
-        <div className="mt-auto pt-3">
+        <div className="mt-auto pt-2 sm:pt-3">
           <h3
-            className={`font-semibold leading-tight ${isLarge ? "text-lg" : isMedium ? "text-base" : "text-sm"}`}
+            className={`font-semibold leading-tight text-xs sm:text-sm ${isLarge ? "sm:text-lg" : isMedium ? "sm:text-base" : ""}`}
             style={{ color: "var(--foreground)" }}
           >
             {scenario.name}
           </h3>
           {scenario.description && (
-            <p className={`mt-2 ${isLarge ? "line-clamp-3 text-sm" : isMedium ? "line-clamp-2 text-xs" : "line-clamp-2 text-xs"} leading-relaxed`} style={{ color: "var(--text-muted)" }}>
+            <p className={`mt-1 sm:mt-2 line-clamp-2 text-[11px] sm:text-xs ${isLarge ? "sm:line-clamp-3 sm:text-sm" : ""} leading-relaxed`} style={{ color: "var(--text-muted)" }}>
               {scenario.description}
             </p>
           )}
-          <div className="mt-3 flex items-center justify-between">
-            <span className={`${isLarge ? "text-xs" : "text-[11px]"}`} style={{ color: "var(--text-muted)" }}>
+          <div className="mt-2 sm:mt-3 flex items-center justify-between">
+            <span className="text-[10px] sm:text-[11px]" style={{ color: "var(--text-muted)" }}>
               {formatDate(scenario.created_at)}
             </span>
             <ChevronRight
-              className={`${isLarge ? "h-5 w-5" : "h-4 w-4"} transition-transform group-hover:translate-x-0.5`}
+              className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform group-hover:translate-x-0.5"
               style={{ color: "var(--primary-lightest)" }}
             />
           </div>
@@ -259,7 +259,7 @@ function DeviceControl({
 
   return (
     <div
-      className="relative shrink-0"
+      className="device-widget-wrap relative shrink-0 sm:shrink-0"
       style={{
         width: w,
         height: h,
@@ -293,27 +293,27 @@ function DeviceControl({
             <X className="h-3.5 w-3.5" />
           </button>
         )}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
               style={{ background: color + "15" }}
             >
               <Icon className="h-4 w-4" style={{ color }} />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold" style={{ color: "var(--foreground)" }}>{label}</div>
-              <div className="truncate text-[11px]" style={{ color: "var(--text-muted)" }}>{device.name}</div>
+              <div className="truncate text-xs sm:text-sm font-semibold" style={{ color: "var(--foreground)" }}>{label}</div>
+              <div className="truncate text-[10px] sm:text-[11px]" style={{ color: "var(--text-muted)" }}>{device.name}</div>
             </div>
           </div>
-          <div className="flex items-baseline gap-1 shrink-0">
-            <span className="font-bold tabular-nums text-2xl" style={{ color }}>{displayValue}</span>
-            <span className="font-medium text-xs" style={{ color: "var(--text-muted)" }}>{unit}</span>
+          <div className="flex items-baseline gap-0.5 sm:gap-1 shrink-0">
+            <span className="font-bold tabular-nums text-xl sm:text-2xl" style={{ color }}>{displayValue}</span>
+            <span className="font-medium text-[10px] sm:text-xs" style={{ color: "var(--text-muted)" }}>{unit}</span>
           </div>
         </div>
-        <div className="relative">
-          <div className="relative h-10 flex items-center">
-            <div className="h-2 w-full rounded-full" style={{ background: "var(--primary-wash)" }}>
+        <div className="relative mt-1 sm:mt-0">
+          <div className="relative h-8 sm:h-10 flex items-center">
+            <div className="h-1.5 sm:h-2 w-full rounded-full" style={{ background: "var(--primary-wash)" }}>
               <div className="h-full rounded-full transition-all duration-100" style={{ width: `${pct}%`, background: color }} />
             </div>
             <input
@@ -387,7 +387,7 @@ function SwitchControl({
 
   return (
     <div
-      className="relative shrink-0"
+      className="device-widget-wrap relative shrink-0 sm:shrink-0"
       style={{
         width: w,
         height: h,
@@ -421,23 +421,23 @@ function SwitchControl({
             <X className="h-3.5 w-3.5" />
           </button>
         )}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
               style={{ background: isOn ? "#51cf6615" : "var(--primary-wash)" }}
             >
               <Plug className="h-4 w-4" style={{ color: isOn ? "#51cf66" : "var(--text-muted)" }} />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+              <div className="truncate text-xs sm:text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                 {device.device_type === 'outlet' ? 'Розетка' : 'Выключатель'}
               </div>
-              <div className="truncate text-[11px]" style={{ color: "var(--text-muted)" }}>{device.name}</div>
+              <div className="truncate text-[10px] sm:text-[11px]" style={{ color: "var(--text-muted)" }}>{device.name}</div>
             </div>
           </div>
           <div
-            className={`rounded-full h-3 w-3 ${loading ? "animate-pulse" : ""}`}
+            className={`rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 ${loading ? "animate-pulse" : ""}`}
             style={{ background: isOn ? "#51cf66" : "#94a3b8" }}
           />
         </div>
@@ -445,7 +445,7 @@ function SwitchControl({
         <button
           onClick={handleToggle}
           disabled={editMode || loading}
-          className="w-full rounded-[var(--radius-md)] py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
+          className="w-full rounded-[var(--radius-md)] py-2 sm:py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
           style={{
             background: isOn ? "#51cf66" : "var(--primary-wash)",
             color: isOn ? "white" : "#51cf66"
@@ -496,7 +496,7 @@ function SensorStatus({
 
   return (
     <div
-      className="relative shrink-0"
+      className="device-widget-wrap relative shrink-0 sm:shrink-0"
       style={{
         width: w,
         height: h,
@@ -530,25 +530,25 @@ function SensorStatus({
             <X className="h-3.5 w-3.5" />
           </button>
         )}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
               style={{ background: active ? "#3b82f615" : "var(--primary-wash)" }}
             >
               <Icon className="h-4 w-4" style={{ color: active ? "#3b82f6" : "var(--text-muted)" }} />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+              <div className="truncate text-xs sm:text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                 {getSensorLabel()}
               </div>
-              <div className="truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
+              <div className="truncate text-[10px] sm:text-[11px]" style={{ color: "var(--text-muted)" }}>
                 {device.name}
               </div>
             </div>
           </div>
-          <div className="flex items-baseline gap-1">
-            <span className="font-bold tabular-nums text-2xl" style={{ color: value !== null && active ? "#3b82f6" : "var(--text-muted)" }}>
+          <div className="flex items-baseline gap-0.5 sm:gap-1">
+            <span className="font-bold tabular-nums text-xl sm:text-2xl" style={{ color: value !== null && active ? "#3b82f6" : "var(--text-muted)" }}>
               {value !== null ? value : "—"}
             </span>
           </div>
@@ -643,7 +643,7 @@ function GenericDeviceWidget({
 
   return (
     <div
-      className="relative shrink-0"
+      className="device-widget-wrap relative shrink-0 sm:shrink-0"
       style={{
         width: w,
         height: h,
@@ -677,32 +677,32 @@ function GenericDeviceWidget({
             <X className="h-3.5 w-3.5" />
           </button>
         )}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
               style={{ background: isOn ? color + '15' : 'var(--primary-wash)' }}
             >
               <Icon className="h-4 w-4" style={{ color: isOn ? color : 'var(--text-muted)' }} />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+              <div className="truncate text-xs sm:text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                 {getDeviceLabel()}
               </div>
-              <div className="truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
+              <div className="truncate text-[10px] sm:text-[11px]" style={{ color: "var(--text-muted)" }}>
                 {device.name}
               </div>
             </div>
           </div>
           <div
-            className={`rounded-full h-3 w-3 ${controlling ? "animate-pulse" : ""}`}
+            className={`rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 ${controlling ? "animate-pulse" : ""}`}
             style={{ background: isOn ? color : "#94a3b8" }}
           />
         </div>
         <button
           onClick={handleToggle}
           disabled={controlling || editMode}
-          className="flex w-full items-center justify-center rounded-[var(--radius-md)] py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
+          className="flex w-full items-center justify-center rounded-[var(--radius-md)] py-2 sm:py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
           style={{
             background: isOn ? color : "var(--primary-wash)",
             color: isOn ? "white" : color
@@ -759,7 +759,7 @@ function DoorControl({
 
   return (
     <div
-      className="relative shrink-0"
+      className="device-widget-wrap relative shrink-0 sm:shrink-0"
       style={{
         width: 267,
         height: 140,
@@ -793,10 +793,10 @@ function DoorControl({
             <X className="h-3.5 w-3.5" />
           </button>
         )}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-[var(--radius-md)]"
               style={{ background: "#3b82f615" }}
             >
               {status === "opened" ? (
@@ -806,16 +806,16 @@ function DoorControl({
               )}
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+              <div className="truncate text-xs sm:text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                 Дверь
               </div>
-              <div className="truncate text-[11px]" style={{ color: "var(--text-muted)" }}>
+              <div className="truncate text-[10px] sm:text-[11px]" style={{ color: "var(--text-muted)" }}>
                 {status === "loading" ? "Выполняется..." : status === "opened" ? "Открыта" : "Закрыта"}
               </div>
             </div>
           </div>
           <div
-            className={`rounded-full h-3 w-3 ${status === "loading" ? "animate-pulse" : ""}`}
+            className={`rounded-full h-2.5 w-2.5 sm:h-3 sm:w-3 ${status === "loading" ? "animate-pulse" : ""}`}
             style={{ background: status === "opened" ? "#51cf66" : "#94a3b8" }}
           />
         </div>
@@ -828,7 +828,7 @@ function DoorControl({
           <button
             onClick={handleOpen}
             disabled={status === "loading" || editMode}
-            className="flex-1 rounded-[var(--radius-md)] py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
+            className="flex-1 rounded-[var(--radius-md)] py-2 sm:py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
             style={{
               background: status === "opened" ? "#3b82f6" : "var(--primary-wash)",
               color: status === "opened" ? "white" : "#3b82f6"
@@ -839,7 +839,7 @@ function DoorControl({
           <button
             onClick={handleClose}
             disabled={status === "loading" || editMode}
-            className="flex-1 rounded-[var(--radius-md)] py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
+            className="flex-1 rounded-[var(--radius-md)] py-2 sm:py-2.5 text-xs font-semibold transition-all disabled:opacity-50"
             style={{
               background: status === "closed" ? "#64748b" : "var(--primary-wash)",
               color: status === "closed" ? "white" : "#64748b"
@@ -1324,7 +1324,7 @@ export default function HomePage() {
               Cozy
             </h1>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="hidden sm:flex items-center gap-2">
             <button
               onClick={() => router.push('/cameras')}
               className="flex h-9 items-center gap-2 rounded-[var(--radius-md)] px-3 transition-colors hover:bg-white/60"
@@ -1358,10 +1358,13 @@ export default function HomePage() {
               <span className="text-xs font-medium">Настройки</span>
             </button>
           </div>
+          <div className="flex sm:hidden items-center gap-1">
+            <PreferencesButton />
+          </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-5 sm:px-6 sm:py-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-24 sm:px-6 sm:py-8 sm:pb-8">
         {/* Scenarios */}
         <section>
           <div className="mb-4 flex items-center justify-between">
@@ -1408,7 +1411,7 @@ export default function HomePage() {
               </button>
             </div>
           ) : (
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               {sorted.map((scenario) => (
                 <ScenarioCard
                   key={scenario.id}
@@ -1460,7 +1463,7 @@ export default function HomePage() {
                 </button>
               </div>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               {displayedWidgets.map((widget) => {
                 if (widget.type === 'door') {
                   return (
@@ -1603,10 +1606,10 @@ export default function HomePage() {
                 const color = getWidgetColor()
 
                 return (
-                  <div key={widget.key} style={{ width: 267, height: 140 }}>
+                  <div key={widget.key} className="device-widget-wrap" style={{ width: 267, height: 140 }}>
                     <button
                       onClick={() => toggleWidget(widget.key)}
-                      className="glass-card flex h-full w-full flex-col items-center justify-center gap-2 p-4 transition-all hover:scale-105"
+                      className="glass-card flex h-full w-full flex-col items-center justify-center gap-1.5 sm:gap-2 p-3 sm:p-4 transition-all hover:scale-105"
                       style={{ opacity: 0.7 }}
                     >
                       <div
@@ -1668,7 +1671,7 @@ export default function HomePage() {
                   Советы AI
                 </h3>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid gap-2 sm:gap-3 sm:grid-cols-3">
                 <div
                   className="rounded-[var(--radius-md)] p-3"
                   style={{ background: "rgba(81, 207, 102, 0.08)", border: "1px solid rgba(81, 207, 102, 0.15)" }}
@@ -1715,12 +1718,12 @@ export default function HomePage() {
             </div>
 
             {/* Charts Grid */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3">
               {/* Energy Consumption */}
-              <div className="glass-card p-5">
-                <div className="mb-4 flex items-center justify-between">
+              <div className="glass-card p-4 sm:p-5">
+                <div className="mb-3 sm:mb-4 flex items-center justify-between">
                   <div>
-                    <h3 className="text-sm font-semibold" style={{ color: "var(--foreground)" }}>
+                    <h3 className="text-xs sm:text-sm font-semibold" style={{ color: "var(--foreground)" }}>
                       Энергопотребление
                     </h3>
                     <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
@@ -1911,6 +1914,54 @@ export default function HomePage() {
           </section>
         )}
       </main>
+
+      {/* Mobile Bottom Navigation */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-40 sm:hidden glass-heavy pb-safe"
+        style={{ borderRadius: 0, borderBottom: "none", borderLeft: "none", borderRight: "none" }}
+      >
+        <div className="flex items-center justify-around h-16 px-1">
+          <button
+            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
+            style={{ color: "var(--primary)" }}
+          >
+            <LayoutGrid className="h-5 w-5" />
+            <span className="text-[10px] font-semibold">Главная</span>
+          </button>
+          <button
+            onClick={() => router.push("/cameras")}
+            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <Video className="h-5 w-5" />
+            <span className="text-[10px] font-medium">Камеры</span>
+          </button>
+          <button
+            onClick={() => router.push("/floor-plan")}
+            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <Map className="h-5 w-5" />
+            <span className="text-[10px] font-medium">План</span>
+          </button>
+          <button
+            onClick={() => router.push("/bills")}
+            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <CreditCard className="h-5 w-5" />
+            <span className="text-[10px] font-medium">Счета</span>
+          </button>
+          <button
+            onClick={() => router.push("/settings")}
+            className="flex flex-col items-center justify-center gap-0.5 py-2 px-3 rounded-[var(--radius-md)] min-w-[60px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            <Settings className="h-5 w-5" />
+            <span className="text-[10px] font-medium">Настройки</span>
+          </button>
+        </div>
+      </nav>
 
       {/* Add Device Modal */}
       {showAddDevice && (
