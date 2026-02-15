@@ -868,7 +868,7 @@ type ChatMessageType = {
   timestamp: string
 }
 
-function AiChatWidget() {
+function AiChatWidget({ onResponse }: { onResponse?: () => void }) {
   const [query, setQuery] = useState("")
   const [sending, setSending] = useState(false)
   const [messages, setMessages] = useState<ChatMessageType[]>([])
@@ -895,6 +895,7 @@ function AiChatWidget() {
     try {
       const res = await api.chat.sendMessage({ message })
       setMessages(prev => [...prev, res as ChatMessageType])
+      onResponse?.()
     } catch (error) {
       console.error("Chat error:", error)
       const errorMessage: ChatMessageType = {
@@ -907,7 +908,7 @@ function AiChatWidget() {
     } finally {
       setSending(false)
     }
-  }, [])
+  }, [onResponse])
 
   return (
     <div className="glass-card overflow-hidden">
@@ -1026,6 +1027,7 @@ export default function HomePage() {
   const [newDeviceLocation, setNewDeviceLocation] = useState("")
   const [newCameraMacIp, setNewCameraMacIp] = useState("")
   const [creatingDevice, setCreatingDevice] = useState(false)
+  const [dashboardRefreshing, setDashboardRefreshing] = useState(false)
 
   const handleToggleScenario = useCallback(async (scenarioId: number) => {
     const scenario = scenarios.find(s => s.id === scenarioId)
@@ -1108,6 +1110,24 @@ export default function HomePage() {
       setCreatingDevice(false)
     }
   }, [newDeviceName, newDeviceType, newDeviceLocation, newCameraMacIp, toggleWidget])
+
+  const refetchDashboard = useCallback(async () => {
+    setDashboardRefreshing(true)
+    await new Promise((r) => requestAnimationFrame(r))
+    await new Promise((r) => requestAnimationFrame(r))
+    try {
+      const [scenarioData, deviceData] = await Promise.all([
+        api.scenarios.list(),
+        api.devices.list(),
+      ])
+      setScenarios(scenarioData)
+      setDevices(deviceData)
+    } catch (error) {
+      console.error("Failed to refetch dashboard:", error)
+    } finally {
+      setDashboardRefreshing(false)
+    }
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -1351,6 +1371,10 @@ export default function HomePage() {
       </header>
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-4 pb-24 sm:px-6 md:py-8 md:pb-8">
+        <div
+          className="transition-opacity duration-300 ease-out"
+          style={{ opacity: dashboardRefreshing ? 0.88 : 1 }}
+        >
         {/* Scenarios */}
         <section>
           <div className="mb-4 flex items-center justify-between">
@@ -1635,7 +1659,7 @@ export default function HomePage() {
                 Спросить у ИИ
               </h2>
             </div>
-            <AiChatWidget />
+            <AiChatWidget onResponse={refetchDashboard} />
           </section>
         )}
 
@@ -1899,6 +1923,7 @@ export default function HomePage() {
             </div>
           </section>
         )}
+        </div>
       </main>
 
       <MobileNav />
