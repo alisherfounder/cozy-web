@@ -407,6 +407,7 @@ function createEvents(config: RequestConfig) {
       event_category?: string | null
       target_type?: string | null
       target_id?: number | null
+      user_type?: string | null
       status?: string | null
       from_date?: string | null
       to_date?: string | null
@@ -418,6 +419,7 @@ function createEvents(config: RequestConfig) {
       if (params?.event_category != null) search.set("event_category", params.event_category)
       if (params?.target_type != null) search.set("target_type", params.target_type)
       if (params?.target_id != null) search.set("target_id", params.target_id.toString())
+      if (params?.user_type != null) search.set("user_type", params.user_type)
       if (params?.status != null) search.set("status", params.status)
       if (params?.from_date != null) search.set("from_date", params.from_date)
       if (params?.to_date != null) search.set("to_date", params.to_date)
@@ -432,6 +434,28 @@ function createEvents(config: RequestConfig) {
 
     today: () =>
       request<EventLogResponse[]>(config, "/api/events/today"),
+
+    stats: (params?: { from_date?: string | null; to_date?: string | null }) => {
+      const search = new URLSearchParams()
+      if (params?.from_date != null) search.set("from_date", params.from_date)
+      if (params?.to_date != null) search.set("to_date", params.to_date)
+      const query = search.toString() ? `?${search}` : ""
+      return request<Record<string, unknown>>(config, `/api/events/stats${query}`)
+    },
+
+    categories: () =>
+      request<unknown>(config, "/api/events/categories"),
+
+    types: () =>
+      request<unknown>(config, "/api/events/types"),
+
+    get: (eventId: number) =>
+      request<EventLogResponse>(config, `/api/events/${eventId}`),
+
+    clear: (days?: number) => {
+      const query = days != null ? `?days=${days}` : ""
+      return request<void>(config, `/api/events/clear${query}`, { method: "DELETE" })
+    },
   }
 }
 

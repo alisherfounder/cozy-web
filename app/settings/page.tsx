@@ -44,19 +44,22 @@ export default function SettingsPage() {
   }, [])
 
   useEffect(() => {
-    if (activeSection === 'logs') loadLogs()
+    if (activeSection !== 'logs') return
+    loadLogs(false)
+    const interval = setInterval(() => loadLogs(true), 5000)
+    return () => clearInterval(interval)
   }, [activeSection])
 
-  async function loadLogs() {
-    setLogsLoading(true)
+  async function loadLogs(silent = false) {
+    if (!silent) setLogsLoading(true)
     try {
-      const data = await api.events.list({ limit: logsLimit })
+      const data = await api.events.recent(logsLimit)
       setLogs(data)
     } catch (e) {
       console.error("loadLogs", e)
       setLogs([])
     } finally {
-      setLogsLoading(false)
+      if (!silent) setLogsLoading(false)
     }
   }
 
@@ -387,7 +390,7 @@ export default function SettingsPage() {
                         Журнал событий
                       </h2>
                       <p className="mt-0.5 text-xs" style={{ color: "var(--text-muted)" }}>
-                        Последние события в системе
+                        Последние события в системе (обновляется автоматически)
                       </p>
                     </div>
 
@@ -406,7 +409,7 @@ export default function SettingsPage() {
                               <li key={log.id} className="px-4 py-3 text-left">
                                 <div className="flex flex-wrap items-baseline gap-2">
                                   <span className="text-xs font-medium tabular-nums" style={{ color: "var(--text-muted)" }}>
-                                    {new Date(log.timestamp).toLocaleString("ru")}
+                                    {new Date(log.timestamp).toLocaleString("ru", { timeZone: "Asia/Almaty" })}
                                   </span>
                                   <span
                                     className="rounded-full px-2 py-0.5 text-[10px] font-medium"
@@ -423,6 +426,11 @@ export default function SettingsPage() {
                                   {log.event_type && (
                                     <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
                                       {log.event_type}
+                                    </span>
+                                  )}
+                                  {log.event_action && (
+                                    <span className="text-xs" style={{ color: "var(--text-muted)" }}>
+                                      · {log.event_action}
                                     </span>
                                   )}
                                 </div>
