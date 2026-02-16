@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation"
 import { api, type FloorPlanUploadResponse } from "@/lib/api"
 import { MarkdownMessage } from "@/components/markdown-message"
 import {
-  Zap, ArrowLeft, Map, Upload, Loader2, Image as ImageIcon,
-  Sparkles, Send, MessageCircle, Trash2, Pencil
+  ArrowLeft, Map, Upload, Loader2, Image as ImageIcon,
+  Sparkles, Send, MessageCircle
 } from "lucide-react"
 import { MobileNav } from "@/components/mobile-nav"
 
@@ -23,10 +23,6 @@ export default function FloorPlanPage() {
   const [inputMessage, setInputMessage] = useState('')
   const [sendingMessage, setSendingMessage] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
-  const [editingPlan, setEditingPlan] = useState<FloorPlanUploadResponse | null>(null)
-  const [editName, setEditName] = useState("")
-  const [updating, setUpdating] = useState(false)
   const [imageError, setImageError] = useState(false)
   const [previewZoom, setPreviewZoom] = useState(1)
 
@@ -40,10 +36,10 @@ export default function FloorPlanPage() {
   }, [messages])
 
   useEffect(() => {
-    if (selectedPlan && messages.length === 0) {
-      initializeChatForPlan(selectedPlan)
-    }
-  }, [selectedPlan])
+    if (!selectedPlan) return
+    setMessages([])
+    loadChatForPlan(selectedPlan)
+  }, [selectedPlan?.id])
 
   useEffect(() => {
     setImageError(false)
@@ -64,7 +60,16 @@ export default function FloorPlanPage() {
     }
   }
 
-  const initializeChatForPlan = async (plan: FloorPlanUploadResponse) => {
+  const loadChatForPlan = async (plan: FloorPlanUploadResponse) => {
+    try {
+      const history = await api.chat.floorPlanChatHistory(plan.id)
+      if (history.length > 0) {
+        setMessages(history.map((h) => ({ role: h.role as 'user' | 'assistant', content: h.content })))
+        return
+      }
+    } catch {
+      /* ignore */
+    }
     const analysis = plan.ai_analysis as Record<string, unknown> | null
     const content =
       (typeof analysis?.summary === 'string' && analysis.summary) ||
@@ -127,19 +132,7 @@ export default function FloorPlanPage() {
     setSendingMessage(true)
 
     try {
-      // Send message with floor plan context
-      const context = {
-        floor_plan_id: selectedPlan.id,
-        floor_plan_name: selectedPlan.name,
-        rooms: selectedPlan.rooms,
-        ai_analysis: selectedPlan.ai_analysis
-      }
-
-      const response = await api.chat.sendMessage({
-        message: userMessage,
-        context
-      })
-
+      const response = await api.chat.floorPlanChat(selectedPlan.id, userMessage)
       setMessages(prev => [...prev, { role: 'assistant', content: response.content }])
     } catch (error) {
       console.error('Failed to send message:', error)
@@ -156,46 +149,6 @@ export default function FloorPlanPage() {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSendMessage()
-    }
-  }
-
-  const handleDeletePlan = async (planId: number) => {
-    if (!confirm('Удалить этот план?')) return
-    setDeletingId(planId)
-    try {
-      await api.chat.deleteFloorPlan(planId)
-      setFloorPlans(prev => prev.filter(p => p.id !== planId))
-      if (selectedPlan?.id === planId) {
-        const rest = floorPlans.filter(p => p.id !== planId)
-        setSelectedPlan(rest[0] ?? null)
-        setMessages([])
-      }
-    } catch (e) {
-      console.error('Delete floor plan failed', e)
-      alert(`Не удалось удалить: ${e instanceof Error ? e.message : 'Ошибка'}`)
-    } finally {
-      setDeletingId(null)
-    }
-  }
-
-  const openRename = (plan: FloorPlanUploadResponse) => {
-    setEditingPlan(plan)
-    setEditName(plan.name)
-  }
-
-  const handleRename = async () => {
-    if (!editingPlan || !editName.trim()) return
-    setUpdating(true)
-    try {
-      const updated = await api.chat.updateFloorPlan(editingPlan.id, { name: editName.trim() })
-      setFloorPlans(prev => prev.map(p => p.id === editingPlan.id ? updated : p))
-      if (selectedPlan?.id === editingPlan.id) setSelectedPlan(updated)
-      setEditingPlan(null)
-    } catch (e) {
-      console.error('Update floor plan failed', e)
-      alert(`Не удалось переименовать: ${e instanceof Error ? e.message : 'Ошибка'}`)
-    } finally {
-      setUpdating(false)
     }
   }
 
@@ -302,68 +255,6 @@ export default function FloorPlanPage() {
                   'Загрузить и проанализировать'
                 )}
               </button>
-
-              {/* Previous Plans - CRUDL (hidden on mobile, shown on lg+) */}
-              {floorPlans.length > 0 && (
-                <div className="mt-6 hidden lg:block">
-                  <h3 className="mb-3 text-xs font-medium" style={{ color: "var(--text-muted)" }}>
-                    Предыдущие планы ({floorPlans.length})
-                  </h3>
-                  <div className="space-y-2">
-                    {floorPlans.map(plan => (
-                      <div
-                        key={plan.id}
-                        className="flex items-center gap-2 rounded-[var(--radius-sm)] p-2 transition-colors"
-                        style={{
-                          background: selectedPlan?.id === plan.id ? "var(--primary-wash)" : "transparent",
-                          border: selectedPlan?.id === plan.id ? "1px solid var(--primary)" : "1px solid transparent"
-                        }}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedPlan(plan)
-                            setMessages([])
-                          }}
-                          className="min-w-0 flex-1 text-left"
-                        >
-                          <p className="text-xs font-medium" style={{ color: "var(--foreground)" }}>
-                            {plan.name}
-                          </p>
-                          <p className="mt-0.5 text-[10px]" style={{ color: "var(--text-muted)" }}>
-                            {new Date(plan.created_at).toLocaleDateString('ru-RU')}
-                          </p>
-                        </button>
-                        <div className="flex shrink-0 items-center gap-0.5">
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); openRename(plan) }}
-                            className="rounded-[var(--radius-sm)] p-1.5 transition-colors hover:bg-white/50"
-                            style={{ color: "var(--text-secondary)" }}
-                            title="Переименовать"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => { e.stopPropagation(); handleDeletePlan(plan.id) }}
-                            disabled={deletingId === plan.id}
-                            className="rounded-[var(--radius-sm)] p-1.5 transition-colors hover:bg-red-50 disabled:opacity-50"
-                            style={{ color: "#ff6b6b" }}
-                            title="Удалить"
-                          >
-                            {deletingId === plan.id ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-3.5 w-3.5" />
-                            )}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -511,50 +402,6 @@ export default function FloorPlanPage() {
           </div>
         </div>
       </main>
-
-      {editingPlan && (
-        <div
-          className="overlay-blur fixed inset-0 z-50 flex items-center justify-center p-4"
-          onClick={() => setEditingPlan(null)}
-        >
-          <div
-            className="glass-dialog w-full max-w-md rounded-[var(--radius-2xl)] p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-base font-semibold" style={{ color: "var(--foreground)" }}>
-              Переименовать план
-            </h2>
-            <div className="mt-4">
-              <input
-                autoFocus
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleRename()}
-                placeholder="Название"
-                className="glass-input h-11 w-full px-3 text-sm"
-                style={{ color: "var(--foreground)" }}
-              />
-            </div>
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => setEditingPlan(null)}
-                className="h-10 rounded-[var(--radius-md)] px-4 text-sm font-medium hover:bg-white/40"
-                style={{ color: "var(--text-secondary)" }}
-              >
-                Отмена
-              </button>
-              <button
-                onClick={handleRename}
-                disabled={!editName.trim() || updating}
-                className="flex h-10 items-center gap-2 rounded-[var(--radius-md)] px-5 text-sm font-medium text-white disabled:opacity-50"
-                style={{ background: "var(--primary)" }}
-              >
-                {updating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Сохранить"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <MobileNav />
     </div>

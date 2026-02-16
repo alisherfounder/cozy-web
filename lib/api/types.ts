@@ -113,8 +113,15 @@ export type FloorPlanUploadResponse = {
   name: string
   image_path: string
   ai_analysis: Record<string, unknown> | null
-  rooms: Record<string, unknown>[] | null
   created_at: string
+}
+
+export type FloorPlanChatResponse = {
+  id: number
+  floor_plan_id: number
+  role: string
+  content: string
+  timestamp: string
 }
 
 export type UserPatternResponse = {

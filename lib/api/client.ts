@@ -12,6 +12,7 @@ import type {
   ChatMessageRequest,
   ChatMessageResponse,
   FloorPlanUploadResponse,
+  FloorPlanChatResponse,
   UserPatternResponse,
   AIRecommendationResponse,
   RecommendationActionRequest,
@@ -206,19 +207,14 @@ function createChat(config: RequestConfig) {
     floorPlans: () =>
       request<FloorPlanUploadResponse[]>(config, "/api/chat/floor-plans"),
 
-    getFloorPlan: (planId: number) =>
-      request<FloorPlanUploadResponse>(config, `/api/chat/floor-plan/${planId}`),
-
-    updateFloorPlan: (planId: number, data: { name?: string }) =>
-      request<FloorPlanUploadResponse>(config, `/api/chat/floor-plan/${planId}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
+    floorPlanChat: (planId: number, message: string) =>
+      request<FloorPlanChatResponse>(config, `/api/chat/floor-plan/${planId}/chat`, {
+        method: "POST",
+        body: JSON.stringify({ message }),
       }),
 
-    deleteFloorPlan: (planId: number) =>
-      request<void>(config, `/api/chat/floor-plan/${planId}`, {
-        method: "DELETE",
-      }),
+    floorPlanChatHistory: (planId: number) =>
+      request<FloorPlanChatResponse[]>(config, `/api/chat/floor-plan/${planId}/chat-history`),
 
     generateScenario: (
       description: string,
